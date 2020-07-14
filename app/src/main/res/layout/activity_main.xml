@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data></data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/white"
+       >
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:id="@+id/command_relative_layout">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/collection_button"
+                android:text="Start/Stop Data Collection"
+                android:textSize="15sp"
+                android:background="@color/white"
+                android:textColor="@color/black"
+                />
+            <Switch
+                android:id="@+id/scan_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="SCAN"
+                android:textSize="15sp"
+                android:visibility="visible"
+                android:layout_gravity="right"
+                android:layout_toRightOf="@id/collection_button"
+                android:paddingLeft="50dp"
+                android:textColor="@color/black"
+                />
+        </RelativeLayout>
+
+       <RelativeLayout
+           android:id="@+id/selected_dev_layout"
+           android:layout_weight=".5"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:paddingBottom="16dp"
+           android:paddingLeft="16dp"
+           android:paddingRight="16dp"
+           android:paddingTop="16dp">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/device_connected_text_view"
+                android:textSize="15dp"
+                android:text="Devices Connected"
+                android:textColor="@color/black"
+                android:textStyle="bold"/>
+
+           <ScrollView
+               android:id="@+id/selected_dev_scrollview"
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:layout_below="@id/device_connected_text_view">
+
+               <androidx.recyclerview.widget.RecyclerView
+                   android:id="@+id/selected_dev_recyclerview"
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent"
+                   tools:listitem="@layout/thingy_item"/>
+           </ScrollView>
+
+       </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/scan_dev_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight=".5"
+            android:paddingBottom="16dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="16dp"
+            >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/device_found_text_view"
+                android:textSize="15dp"
+                android:textColor="@color/black"
+                android:text="Devices Founded"
+                android:textStyle="bold"/>
+
+            <ScrollView
+                android:id="@+id/dev_scan_scrollview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/device_found_text_view">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/dev_scan_recyclerview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    tools:listitem="@layout/thingy_item"/>
+            </ScrollView>
+
+        </RelativeLayout>
+
+
+
+    </LinearLayout>
+
+</layout>

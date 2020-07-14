@@ -1,0 +1,3 @@
+include ':thingylib'
+include ':app'
+rootProject.name = "ProgettoGio"

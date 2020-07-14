@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.appcompat.widget.Toolbar
+    android:id="@+id/toolbar_main"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="@color/colorPrimary"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+    app:popupTheme="@style/Theme.AppCompat.Light"
+    >
+
+<!--    <TextView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="NORDIC SCAN"-->
+<!--        android:textSize="20sp"/>-->
+
+
+<!--    <Button-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:id="@+id/collection_button"-->
+<!--        android:text="Start Data Collection"-->
+<!--        android:textSize="15sp"-->
+<!--        android:background="@color/colorPrimary"-->
+<!--        />-->
+<!--    <Switch-->
+<!--        android:id="@+id/scan_switch"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:text="SCAN"-->
+
+<!--        android:textSize="15sp"-->
+<!--        android:visibility="visible"-->
+<!--        android:layout_gravity="right"/>-->
+
+
+
+</androidx.appcompat.widget.Toolbar>

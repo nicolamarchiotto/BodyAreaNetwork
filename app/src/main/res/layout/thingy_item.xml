@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data></data>
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/device_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:background="@android:color/white"
+        android:layout_margin="5dp"
+        android:padding="16dp"
+        android:paddingTop="6dp"
+        android:paddingRight="6dp"
+        android:paddingBottom="6dp">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="27dp"
+            android:layout_height="27dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_thingy_gray"
+            tools:ignore="contentDescription" />
+
+        <ImageView
+            android:id="@+id/rssi"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_rssi_bar"
+            tools:ignore="contentDescription" />
+
+        <TextView
+            android:id="@+id/device_name"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_toRightOf="@id/icon"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:text="device name"/>
+        <!--tools:text="Nordic_Blinky" -->
+
+        <TextView
+            android:id="@+id/device_address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/device_name"
+            android:layout_alignLeft="@id/device_name"
+            android:singleLine="true"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            tools:text="AA:BB:CC:DD:EE:FF" />
+
+
+        <TextView
+            android:id="@+id/title_frequency"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:layout_toRightOf="@id/device_name"
+            android:text="Frequency:"
+            android:textColor="#000000"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/device_frequency"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_toRightOf="@id/title_frequency"
+            android:text="0 Hz"
+            android:textColor="#000000"
+            android:textSize="12sp" />
+
+
+        <TextView
+            android:id="@+id/title_battery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/title_frequency"
+            android:layout_alignLeft="@id/title_frequency"
+            android:text="Battery:"
+            android:textColor="#000000"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/device_battery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/device_frequency"
+            android:layout_marginLeft="3dp"
+            android:layout_toRightOf="@id/title_battery"
+            android:text="0%"
+            android:textColor="#000000"
+            android:textSize="12sp" />
+
+    </RelativeLayout>
+
+
+
+</layout>
