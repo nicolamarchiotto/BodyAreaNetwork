@@ -16,6 +16,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.couchbase.lite.AbstractReplicator;
 import com.couchbase.lite.CouchbaseLite;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -106,48 +107,82 @@ public class DataMapper {
                 try {
                     mDatabase.save(newDoc);
                     Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
-
                     Document document=mDatabase.getDocument(periodSample.getId());
                     MutableDocument mutableDocument=document.toMutable();
                     Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
+                    startReplication();
                 } catch (CouchbaseLiteException e) {
                     e.printStackTrace();
                 }
             }
         });
 
+//        while(isSaving[0]){
+//            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: waiting end of saving into local db");
+//        }
+//        mAppExecutors.networkIO().execute(new Runnable() {
+//            @Override
+//            public void run() {
+//                startReplication();
+//            }
+//        });
 
     }
 
-    /**
-     * Estrazione url db remoto dai settings.
-     *
-     * @return url+name formato: ws://ip:porta/db_name
-     */
-    private String getDestination() {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-        String db_name = pref.getString("db_name", "");
-        String url = pref.getString("db_url", "");
-        return url + db_name;
-    }
+    void startReplication() {
+        URI uri = null;
+        try {
+            uri = new URI("ws://10.0.2.2:4984/getting-started-db");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        Endpoint endpoint = new URLEndpoint(uri);
+        ReplicatorConfiguration config = new ReplicatorConfiguration(mDatabase, endpoint);
+        config.setReplicatorType(ReplicatorConfiguration.ReplicatorType.PUSH);
+        this.replicator = new Replicator(config);
+        replicator.addChangeListener(change -> {
+            if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.CONNECTING) {
+                Log.i(TAG, "Connecting to remote db for replication");
+            }
+            if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.BUSY) {
+                Log.i(TAG, "Replication ongoing");
+            }
+            if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.STOPPED) {
+                Log.i(TAG, "Replication stopped");
+            }
+        });
 
-    /**
-     * Estrazione Username per accesso al db dai settings.
-     *
-     * @return username
-     */
-    private String getUsername() {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-        return pref.getString("fing_username", "");
+        this.replicator.start();
     }
-
-    /**
-     * Estrazione Password per accesso al db dai settings.
-     *
-     * @return password
-     */
-    private String getPassword() {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-        return pref.getString("fing_password", "");
-    }
+//    /**
+//     * Estrazione url db remoto dai settings.
+//     *
+//     * @return url+name formato: ws://ip:porta/db_name
+//     */
+//    private String getDestination() {
+//        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+//        String db_name = pref.getString("db_name", "");
+//        String url = pref.getString("db_url", "");
+//        return url + db_name;
+//    }
+//
+//    /**
+//     * Estrazione Username per accesso al db dai settings.
+//     *
+//     * @return username
+//     */
+//    private String getUsername() {
+//        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+//        return pref.getString("fing_username", "");
+//    }
+//
+//    /**
+//     * Estrazione Password per accesso al db dai settings.
+//     *
+//     * @return password
+//     */
+//    private String getPassword() {
+//        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+//        return pref.getString("fing_password", "");
+//    }
 }
