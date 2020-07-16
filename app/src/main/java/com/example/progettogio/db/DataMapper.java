@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.couchbase.lite.AbstractReplicator;
+import com.couchbase.lite.BasicAuthenticator;
 import com.couchbase.lite.CouchbaseLite;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -101,21 +102,22 @@ public class DataMapper {
 
 
 
-        mAppExecutors.diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mDatabase.save(newDoc);
-                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
-                    Document document=mDatabase.getDocument(periodSample.getId());
-                    MutableDocument mutableDocument=document.toMutable();
-                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
-                    startReplication();
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+//        mAppExecutors.diskIO().execute(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        });
+        try {
+            mDatabase.save(newDoc);
+            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
+            Document document=mDatabase.getDocument(periodSample.getId());
+            MutableDocument mutableDocument=document.toMutable();
+            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
+            startReplication();
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
 
 //        while(isSaving[0]){
 //            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: waiting end of saving into local db");
@@ -132,14 +134,22 @@ public class DataMapper {
     void startReplication() {
         URI uri = null;
         try {
-            uri = new URI("ws://10.0.2.2:4984/getting-started-db");
+            uri = new URI("ws://localhost:4984/getting-started-db");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         Endpoint endpoint = new URLEndpoint(uri);
         ReplicatorConfiguration config = new ReplicatorConfiguration(mDatabase, endpoint);
         config.setReplicatorType(ReplicatorConfiguration.ReplicatorType.PUSH);
-        this.replicator = new Replicator(config);
+        config.setAuthenticator(new BasicAuthenticator("Nicola","tirocinio"));
+        replicator = new Replicator(config);
+
+        replicator.addChangeListener(change -> {
+            if (change.getStatus().getError() != null) {
+                Log.i(TAG, "Error code ::  " + change.getStatus().getError().getCode());
+            }
+        });
+
         replicator.addChangeListener(change -> {
             if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.CONNECTING) {
                 Log.i(TAG, "Connecting to remote db for replication");
@@ -149,6 +159,22 @@ public class DataMapper {
             }
             if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.STOPPED) {
                 Log.i(TAG, "Replication stopped");
+            }
+        });
+
+        //controllo quali dati il replicator sta caricando su db remoto.
+        replicator.addDocumentReplicationListener(replication -> {
+            for (ReplicatedDocument document : replication.getDocuments()) {
+                Toast.makeText(mContext, "Recording stopped...Uploading "+ document.getID()+" to database", Toast.LENGTH_SHORT).show();
+                CouchbaseLiteException err = document.getError();
+                if (err != null) {
+                    // There was an error
+                    Log.e(TAG, "Error replicating document: ", err);
+                    return;
+                }
+                if (document.flags().contains(DocumentFlag.DocumentFlagsDeleted)) {
+                    Log.i(TAG, "Successfully replicated a deleted document");
+                }
             }
         });
 
