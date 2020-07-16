@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         //view binding
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
@@ -154,7 +156,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         });
 
         DataMapper.getInstance().setContext(getApplicationContext());
-
     }
 
     @Override

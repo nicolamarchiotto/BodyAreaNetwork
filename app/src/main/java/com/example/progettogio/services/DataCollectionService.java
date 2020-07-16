@@ -96,29 +96,13 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
             nordicHashMap.put(device.getAddress(),new NordicPeriodSample());
 
             ThingyListenerHelper.registerThingyListener(getApplicationContext(), thingyListener, device);
-//            thingySdkManager.enableMotionNotifications(device, true);
-//            thingySdkManager.enableAirQualityNotifications(device, true);
-//            thingySdkManager.enableBatteryLevelNotifications(device, true);
-//            thingySdkManager.enableButtonStateNotification(device, true);
-//            thingySdkManager.enableColorNotifications(device, true);
-//            thingySdkManager.enableEnvironmentNotifications(device, true);
-//            thingySdkManager.enableEulerNotifications(device, true);
-            thingySdkManager.enableGravityVectorNotifications(device, true);
-//            thingySdkManager.enableHeadingNotifications(device, true);
-//            thingySdkManager.enableHumidityNotifications(device, true);
-//            thingySdkManager.enableOrientationNotifications(device, true);
-//            thingySdkManager.enablePedometerNotifications(device, true);
-//            thingySdkManager.enablePressureNotifications(device, true);
-//            thingySdkManager.enableQuaternionNotifications(device, true);
-//            thingySdkManager.enableRawDataNotifications(device, true);
-//            thingySdkManager.enableRotationMatrixNotifications(device, true);
-//            thingySdkManager.enableSoundNotifications(device, true);
-//            thingySdkManager.enableSpeakerStatusNotifications(device, true);
-//            thingySdkManager.enableTapNotifications(device, true);
-//            thingySdkManager.enableThingyMicrophone(device, true);
-//            thingySdkManager.enableUiNotifications(device, true);
-            // thingySdkManager.setMotionProcessingFrequency(device, ThingyUtils.MPU_FREQ_MIN_INTERVAL);
-            Log.d(TAG, "startCollection: fine attivazione sensori per device "+device.getAddress());
+
+            thingySdkManager.enableEnvironmentNotifications(device, true);
+            thingySdkManager.enableUiNotifications(device, true);
+            thingySdkManager.enableSoundNotifications(device, true);
+            thingySdkManager.enableMotionNotifications(device, true);
+
+             Log.d(TAG, "startCollection: fine attivazione sensori per device "+device.getAddress());
         }
 
     }
@@ -135,6 +119,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
             DataMapper.getInstance().saveNordicPeriodSampleIntoDbLocal(device.getAddress(),nordicHashMap.get(device.getAddress()));
             ThingyListenerHelper.unregisterThingyListener(getApplicationContext(),thingyListener);
         }
+        DataMapper.getInstance().startReplication();
         super.onDestroy();
     }
 

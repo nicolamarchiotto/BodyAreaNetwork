@@ -25,6 +25,8 @@ import com.couchbase.lite.DatabaseConfiguration;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.DocumentFlag;
 import com.couchbase.lite.Endpoint;
+import com.couchbase.lite.LogDomain;
+import com.couchbase.lite.LogLevel;
 import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.ReplicatedDocument;
@@ -66,7 +68,7 @@ public class DataMapper {
      * @param context context della main activity.
      */
     public void setContext(Context context) {
-
+        Database.setLogLevel(LogDomain.REPLICATOR, LogLevel.VERBOSE);
         // Initialize the Couchbase Lite system
         CouchbaseLite.init(context);
         // Get the database (and create it if it doesn’t exist).
@@ -75,6 +77,7 @@ public class DataMapper {
         if (mDatabase == null) {
             try {
                 mDatabase = new Database("myDB", config);
+
                 mAppExecutors=new AppExecutors();
                 Log.d(TAG, "setContext: Database Created");
             } catch (CouchbaseLiteException e) {
@@ -87,37 +90,36 @@ public class DataMapper {
     }
 
 
-    public void saveNordicPeriodSampleIntoDbLocal(String deviceAddress,NordicPeriodSample periodSample){
+    public void saveNordicPeriodSampleIntoDbLocal(String deviceAddress,NordicPeriodSample nordicPeriodSample){
         Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving session in a document into local db");
 
-        MutableDocument newDoc = new MutableDocument(periodSample.getId());
+        MutableDocument newDoc = new MutableDocument(nordicPeriodSample.getId());
 
-        newDoc.setArray("tQuaternion", periodSample.getThingyQuaternionMutableArray())
-                .setArray("tAccellerometer", periodSample.getThingyAccellerometerMutableArray())
-                .setArray("tGyroscope", periodSample.getThingyGyroscopeMutableArray())
-                .setArray("tCompass", periodSample.getThingyCompassMutableArray())
-                .setArray("tEulerAngle", periodSample.getThingyEulerAngleMutableArray())
-                .setArray("tGravityVector", periodSample.getThingyGravityVectorMutableArray());
+        newDoc.setArray("tQuaternion", nordicPeriodSample.getThingyQuaternionMutableArray())
+                .setArray("tAccellerometer", nordicPeriodSample.getThingyAccellerometerMutableArray())
+                .setArray("tGyroscope", nordicPeriodSample.getThingyGyroscopeMutableArray())
+                .setArray("tCompass", nordicPeriodSample.getThingyCompassMutableArray())
+                .setArray("tEulerAngle", nordicPeriodSample.getThingyEulerAngleMutableArray())
+                .setArray("tGravityVector", nordicPeriodSample.getThingyGravityVectorMutableArray());
         newDoc.setArray("DeviceAddress", new MutableArray().addString(deviceAddress));
 
 
 
-//        mAppExecutors.diskIO().execute(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//            }
-//        });
-        try {
-            mDatabase.save(newDoc);
-            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
-            Document document=mDatabase.getDocument(periodSample.getId());
-            MutableDocument mutableDocument=document.toMutable();
-            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
-            startReplication();
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
+        mAppExecutors.diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mDatabase.save(newDoc);
+                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
+                    Document document=mDatabase.getDocument(nordicPeriodSample.getId());
+                    MutableDocument mutableDocument=document.toMutable();
+                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
 
 //        while(isSaving[0]){
 //            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: waiting end of saving into local db");
@@ -131,17 +133,19 @@ public class DataMapper {
 
     }
 
-    void startReplication() {
+    public void startReplication() {
+        Log.d(TAG, "startReplication: ");
+        
         URI uri = null;
         try {
-            uri = new URI("ws://localhost:4984/getting-started-db");
+            uri = new URI(getDestination());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
         Endpoint endpoint = new URLEndpoint(uri);
         ReplicatorConfiguration config = new ReplicatorConfiguration(mDatabase, endpoint);
         config.setReplicatorType(ReplicatorConfiguration.ReplicatorType.PUSH);
-        config.setAuthenticator(new BasicAuthenticator("Nicola","tirocinio"));
+//        config.setAuthenticator(new BasicAuthenticator("sync_gateway", "password"));
         replicator = new Replicator(config);
 
         replicator.addChangeListener(change -> {
@@ -153,6 +157,9 @@ public class DataMapper {
         replicator.addChangeListener(change -> {
             if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.CONNECTING) {
                 Log.i(TAG, "Connecting to remote db for replication");
+            }
+            if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.OFFLINE) {
+                Log.i(TAG, "Db offline");
             }
             if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.BUSY) {
                 Log.i(TAG, "Replication ongoing");
@@ -211,4 +218,12 @@ public class DataMapper {
 //        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
 //        return pref.getString("fing_password", "");
 //    }
+
+    private String getDestination() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+        String db_name = pref.getString("db_name", "");
+        String url = pref.getString("db_url", "");
+        Log.d(TAG, "getDestination: "+url+db_name);
+        return url + db_name;
+    }
 }

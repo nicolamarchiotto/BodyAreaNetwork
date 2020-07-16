@@ -32,7 +32,7 @@ public class NordicPeriodSample {
         thingyCompassMutableArray=new MutableArray();
         thingyEulerAngleMutableArray=new MutableArray();
         thingyGravityVectorMutableArray=new MutableArray();
-        id="prova";
+        id="prova3";
 
 
     }

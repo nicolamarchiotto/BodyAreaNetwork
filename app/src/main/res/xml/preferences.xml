@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory>
+
+        <EditTextPreference
+            android:defaultValue="getting-started-db/"
+            android:icon="@drawable/ic_storage_black_24dp"
+            android:key="db_name"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="The name of your database"
+            android:title="Name" />
+        <EditTextPreference
+            android:defaultValue="ws://192.168.0.103:4984/"
+            android:icon="@drawable/ic_insert_link_black_24dp"
+            android:key="db_url"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="Your database (or hosted database) url"
+            android:title="URL" />
+        <EditTextPreference
+            android:defaultValue="example"
+            android:icon="@drawable/ic_supervisor_account_black_24dp"
+            android:key="fing_username"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="Your db usarname"
+            android:title="Username" />
+        <EditTextPreference
+            android:defaultValue="example"
+            android:icon="@drawable/ic_vpn_key_black_24dp"
+            android:key="fing_password"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:summary="Your db password"
+            android:title="Password" />
+
+    </PreferenceCategory>
+</PreferenceScreen>
