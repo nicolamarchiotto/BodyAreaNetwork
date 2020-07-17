@@ -13,7 +13,7 @@ import static androidx.constraintlayout.widget.Constraints.TAG;
 public class NordicPeriodSample {
 
     private String id;
-    private String deviceName;
+    private String nordicAddress;
     private MutableArray thingyQuaternionMutableArray;
     private MutableArray thingyAccellerometerMutableArray;
     private MutableArray thingyGyroscopeMutableArray;
@@ -21,18 +21,17 @@ public class NordicPeriodSample {
     private MutableArray thingyEulerAngleMutableArray;
     private MutableArray thingyGravityVectorMutableArray;
 
-    public String getId() {
-        return id;
-    }
-
-    public NordicPeriodSample(){
+    public NordicPeriodSample(int session_id,int nordic_number,String deviceAddress){
         thingyQuaternionMutableArray=new MutableArray();
         thingyAccellerometerMutableArray=new MutableArray();
         thingyGyroscopeMutableArray=new MutableArray();
         thingyCompassMutableArray=new MutableArray();
         thingyEulerAngleMutableArray=new MutableArray();
         thingyGravityVectorMutableArray=new MutableArray();
-        id="prova3";
+        id= "session:"+session_id+"-nordic:"+nordic_number;
+        nordicAddress=deviceAddress;
+
+
 
 
     }
@@ -117,8 +116,9 @@ public class NordicPeriodSample {
         return thingyEulerAngleMutableArray;
     }
 
-    public MutableArray getThingyGravityVectorMutableArray() {
-        return thingyGravityVectorMutableArray;
-    }
+    public MutableArray getThingyGravityVectorMutableArray() { return thingyGravityVectorMutableArray; }
 
+    public String getId() { return id; }
+
+    public String getNordicAddress() { return nordicAddress; }
 }

@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     private Toolbar toolbar;
 
+    private static int session_id=1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -281,8 +283,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     };
 
 
-  
-
 
     /**
      * listener per per la recyclerview dei device scansionati
@@ -449,13 +449,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                     break;
                 }
             }
-
-          /* for (BluetoothDevice device : thingySdkManager.getConnectedDevices()){
-               if (device.getAddress().equals(address))
-                   thingySdkManager.disconnectFromThingy(device);
-                    break;
-           }*/
-
     }
 
     public void startDataCollection(){
@@ -464,6 +457,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
 
         Intent beaconDiscoveryService = new Intent(this, DataCollectionService.class);
+        beaconDiscoveryService.putExtra("SESSION_ID", session_id);
+        session_id+=1;
         startForegroundService(beaconDiscoveryService);
     }
 

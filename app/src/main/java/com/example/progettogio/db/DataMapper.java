@@ -90,18 +90,18 @@ public class DataMapper {
     }
 
 
-    public void saveNordicPeriodSampleIntoDbLocal(String deviceAddress,NordicPeriodSample nordicPeriodSample){
+    public void saveNordicPeriodSampleIntoDbLocal(NordicPeriodSample nordicPeriodSample){
         Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving session in a document into local db");
 
         MutableDocument newDoc = new MutableDocument(nordicPeriodSample.getId());
-
+        newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample.getNordicAddress()));
         newDoc.setArray("tQuaternion", nordicPeriodSample.getThingyQuaternionMutableArray())
                 .setArray("tAccellerometer", nordicPeriodSample.getThingyAccellerometerMutableArray())
                 .setArray("tGyroscope", nordicPeriodSample.getThingyGyroscopeMutableArray())
                 .setArray("tCompass", nordicPeriodSample.getThingyCompassMutableArray())
                 .setArray("tEulerAngle", nordicPeriodSample.getThingyEulerAngleMutableArray())
                 .setArray("tGravityVector", nordicPeriodSample.getThingyGravityVectorMutableArray());
-        newDoc.setArray("DeviceAddress", new MutableArray().addString(deviceAddress));
+
 
 
 

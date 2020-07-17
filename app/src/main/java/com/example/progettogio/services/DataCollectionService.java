@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
@@ -42,6 +43,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 //    private Database database;
 
     private HashMap<String,NordicPeriodSample> nordicHashMap;
+    int session_id;
 
 
 
@@ -54,7 +56,9 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String input = intent.getStringExtra("inputExtra");
-//        createNotificationChannel();
+        session_id=intent.getIntExtra("SESSION_ID",1);
+//        Log.d(TAG, "onStartCommand: SESSION_ID: "+session_id);
+
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, 0);
@@ -67,6 +71,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         startForeground(1, notification);
         //do heavy work on a background thread
         //stopSelf();
+        startCollection();
         return START_STICKY;
     }
 
@@ -79,22 +84,17 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         thingySdkManager = ThingySdkManager.getInstance();
         mBinder = thingySdkManager.getThingyBinder();
 
-
-
-
         nordicHashMap=new HashMap<>();
-
-
-        startCollection();
     }
 
 
     private void startCollection(){
+        int nordic_number=1;
         for(BluetoothDevice device : thingySdkManager.getConnectedDevices()) {
             Log.d(TAG, "startCollection: connettendo il device "+device.getAddress()+" al listener in DataCollectorService");
 
-            nordicHashMap.put(device.getAddress(),new NordicPeriodSample());
-
+            nordicHashMap.put(device.getAddress(),new NordicPeriodSample(session_id,nordic_number,device.getAddress()));
+            nordic_number+=1;
             ThingyListenerHelper.registerThingyListener(getApplicationContext(), thingyListener, device);
 
             thingySdkManager.enableEnvironmentNotifications(device, true);
@@ -116,7 +116,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     @Override
     public void onDestroy() {
         for(BluetoothDevice device:thingySdkManager.getConnectedDevices()){
-            DataMapper.getInstance().saveNordicPeriodSampleIntoDbLocal(device.getAddress(),nordicHashMap.get(device.getAddress()));
+            DataMapper.getInstance().saveNordicPeriodSampleIntoDbLocal(nordicHashMap.get(device.getAddress()));
             ThingyListenerHelper.unregisterThingyListener(getApplicationContext(),thingyListener);
         }
         DataMapper.getInstance().startReplication();
