@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.couchbase.lite.AbstractReplicator;
 import com.couchbase.lite.BasicAuthenticator;
+import com.couchbase.lite.ConcurrencyControl;
 import com.couchbase.lite.CouchbaseLite;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -103,22 +104,23 @@ public class DataMapper {
                 .setArray("tGravityVector", nordicPeriodSample.getThingyGravityVectorMutableArray());
 
 
+        try {
+            mDatabase.save(newDoc);
 
+            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
+            Document document=mDatabase.getDocument(nordicPeriodSample.getId());
+            MutableDocument mutableDocument=document.toMutable();
+            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
 
-        mAppExecutors.diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mDatabase.save(newDoc);
-                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
-                    Document document=mDatabase.getDocument(nordicPeriodSample.getId());
-                    MutableDocument mutableDocument=document.toMutable();
-                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+//        mAppExecutors.diskIO().execute(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//            }
+//        });
 
 
 //        while(isSaving[0]){
@@ -183,6 +185,7 @@ public class DataMapper {
                     Log.i(TAG, "Successfully replicated a deleted document");
                 }
             }
+
         });
 
         this.replicator.start();

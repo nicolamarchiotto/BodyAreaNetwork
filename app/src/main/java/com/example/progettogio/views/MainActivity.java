@@ -32,6 +32,7 @@ import com.example.progettogio.services.DataCollectionService;
 import com.example.progettogio.services.ThingyService;
 import com.example.progettogio.utils.PermissionUtils;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,7 +82,12 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     private Toolbar toolbar;
 
+    /**
+     * timestamp of the session, same for every app start
+     * session_id: varies for every collection of datas
+     */
     private static int session_id=1;
+    private Timestamp timestamp;
 
 
     @Override
@@ -93,6 +99,9 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+
+        timestamp = new Timestamp(System.currentTimeMillis());
+        Log.d(TAG, "onCreate: "+timestamp);
 
         //view binding
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
@@ -457,8 +466,11 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
 
         Intent beaconDiscoveryService = new Intent(this, DataCollectionService.class);
-        beaconDiscoveryService.putExtra("SESSION_ID", session_id);
+        String value=timestamp+" Session:"+session_id;
+        Log.d(TAG, "startDataCollection: "+value);
+        beaconDiscoveryService.putExtra("SESSION_ID",value);
         session_id+=1;
+
         startForegroundService(beaconDiscoveryService);
     }
 

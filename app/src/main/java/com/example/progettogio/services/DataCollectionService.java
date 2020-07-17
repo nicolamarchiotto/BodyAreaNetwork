@@ -43,7 +43,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 //    private Database database;
 
     private HashMap<String,NordicPeriodSample> nordicHashMap;
-    int session_id;
+    String session_id;
 
 
 
@@ -55,24 +55,10 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String input = intent.getStringExtra("inputExtra");
-        session_id=intent.getIntExtra("SESSION_ID",1);
+        session_id=intent.getStringExtra("SESSION_ID");
 //        Log.d(TAG, "onStartCommand: SESSION_ID: "+session_id);
-
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, 0);
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Collecting Data")
-                .setContentText(input)
-                .setSmallIcon(R.drawable.ic_thingy_gray)
-                .setContentIntent(pendingIntent)
-                .build();
-        startForeground(1, notification);
-        //do heavy work on a background thread
-        //stopSelf();
         startCollection();
-        return START_STICKY;
+        return Service.START_STICKY;
     }
 
 
@@ -103,9 +89,38 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
             thingySdkManager.enableMotionNotifications(device, true);
 
              Log.d(TAG, "startCollection: fine attivazione sensori per device "+device.getAddress());
+
+            setNotification("Data collecting", "Running");
         }
 
     }
+    private void setNotification(String title, String descr) {
+        PendingIntent pendingIntent =
+                PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+
+        createNotificationChannel();
+        Notification notification = new NotificationCompat.Builder(this, "misc")
+                .setContentTitle(title)
+                .setContentText(descr)
+                .setSmallIcon(R.drawable.ic_thingy_gray)
+                .setContentIntent(pendingIntent)
+                .build();
+
+        startForeground(1, notification);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    "misc",
+                    "Foreground Service Channel",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(serviceChannel);
+        }
+    }
+
 
 
     private void stopCollection(){

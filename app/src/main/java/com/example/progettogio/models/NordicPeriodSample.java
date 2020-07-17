@@ -21,14 +21,14 @@ public class NordicPeriodSample {
     private MutableArray thingyEulerAngleMutableArray;
     private MutableArray thingyGravityVectorMutableArray;
 
-    public NordicPeriodSample(int session_id,int nordic_number,String deviceAddress){
+    public NordicPeriodSample(String session_id,int nordic_number,String deviceAddress){
         thingyQuaternionMutableArray=new MutableArray();
         thingyAccellerometerMutableArray=new MutableArray();
         thingyGyroscopeMutableArray=new MutableArray();
         thingyCompassMutableArray=new MutableArray();
         thingyEulerAngleMutableArray=new MutableArray();
         thingyGravityVectorMutableArray=new MutableArray();
-        id= "session:"+session_id+"-nordic:"+nordic_number;
+        id=session_id+" - nordic:"+nordic_number;
         nordicAddress=deviceAddress;
 
 
@@ -36,7 +36,7 @@ public class NordicPeriodSample {
 
     }
 
-    public void addThingyQuaternionData(String bluetoothDeviceAddress, float w, float x, float y, float z, long timestamp) {
+    public void addThingyQuaternionData(String q, float w, float x, float y, float z, long timestamp) {
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("W",w);
         dictionary.setDouble("X",x);
