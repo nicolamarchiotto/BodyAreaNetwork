@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothGatt;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
@@ -18,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.example.progettogio.R;
+import com.example.progettogio.callback.subsessionCallback;
 import com.example.progettogio.db.AppExecutors;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.models.NordicPeriodSample;
@@ -30,7 +32,7 @@ import no.nordicsemi.android.thingylib.ThingyListener;
 import no.nordicsemi.android.thingylib.ThingyListenerHelper;
 import no.nordicsemi.android.thingylib.ThingySdkManager;
 
-public class DataCollectionService extends Service implements ThingySdkManager.ServiceConnectionListener {
+public class DataCollectionService extends Service implements ThingySdkManager.ServiceConnectionListener, subsessionCallback {
 
     private static final String TAG = "DataCollectionService";
 
@@ -71,6 +73,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         mBinder = thingySdkManager.getThingyBinder();
 
         nordicHashMap=new HashMap<>();
+        DataMapper.getInstance().setReplicator();
     }
 
 
@@ -79,7 +82,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         for(BluetoothDevice device : thingySdkManager.getConnectedDevices()) {
             Log.d(TAG, "startCollection: connettendo il device "+device.getAddress()+" al listener in DataCollectorService");
 
-            nordicHashMap.put(device.getAddress(),new NordicPeriodSample(session_id,nordic_number,device.getAddress()));
+            nordicHashMap.put(device.getAddress(),new NordicPeriodSample(session_id,nordic_number,device.getAddress(),this));
             nordic_number+=1;
             ThingyListenerHelper.registerThingyListener(getApplicationContext(), thingyListener, device);
 
@@ -260,5 +263,17 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     @Override
     public void onServiceConnected() {
         mBinder = thingySdkManager.getThingyBinder();
+    }
+
+    @Override
+    public void onCondTrue(String address) {
+        Log.d(TAG, "onCondTrue: ");
+        DataMapper.getInstance().saveNordicPeriodSampleIntoDbLocal(nordicHashMap.get(address));
+        DataMapper.getInstance().startReplication();
+    }
+
+    @Override
+    public void onCondFalse(String address) {
+
     }
 }

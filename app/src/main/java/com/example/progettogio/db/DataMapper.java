@@ -92,9 +92,9 @@ public class DataMapper {
 
 
     public void saveNordicPeriodSampleIntoDbLocal(NordicPeriodSample nordicPeriodSample){
-        Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving session in a document into local db");
-
-        MutableDocument newDoc = new MutableDocument(nordicPeriodSample.getId());
+        String document_id=nordicPeriodSample.getId()+"."+nordicPeriodSample.getSubsession()+" - N"+nordicPeriodSample.getNordic_num();
+        Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
+        MutableDocument newDoc = new MutableDocument(document_id);
         newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample.getNordicAddress()));
         newDoc.setArray("tQuaternion", nordicPeriodSample.getThingyQuaternionMutableArray())
                 .setArray("tAccellerometer", nordicPeriodSample.getThingyAccellerometerMutableArray())
@@ -104,23 +104,23 @@ public class DataMapper {
                 .setArray("tGravityVector", nordicPeriodSample.getThingyGravityVectorMutableArray());
 
 
-        try {
-            mDatabase.save(newDoc);
 
-            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
-            Document document=mDatabase.getDocument(nordicPeriodSample.getId());
-            MutableDocument mutableDocument=document.toMutable();
-            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
-        } catch (CouchbaseLiteException e) {
-            e.printStackTrace();
-        }
 
-//        mAppExecutors.diskIO().execute(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//            }
-//        });
+        mAppExecutors.diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                  try {
+                      mDatabase.save(newDoc);
+
+                      Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
+//                    Document document=mDatabase.getDocument(nordicPeriodSample.getId());
+//                    MutableDocument mutableDocument=document.toMutable();
+//                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
 
 //        while(isSaving[0]){
@@ -134,10 +134,9 @@ public class DataMapper {
 //        });
 
     }
-
-    public void startReplication() {
-        Log.d(TAG, "startReplication: ");
-        
+    
+    public void setReplicator(){
+        Log.d(TAG, "setReplicator: ");
         URI uri = null;
         try {
             uri = new URI(getDestination());
@@ -187,8 +186,16 @@ public class DataMapper {
             }
 
         });
+    }
 
-        this.replicator.start();
+    public void startReplication() {
+        mAppExecutors.networkIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "startReplication: ");
+                replicator.start();
+            }
+        });
     }
 //    /**
 //     * Estrazione url db remoto dai settings.

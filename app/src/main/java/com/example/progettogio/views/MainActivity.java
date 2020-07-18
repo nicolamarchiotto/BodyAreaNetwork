@@ -466,7 +466,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
 
         Intent beaconDiscoveryService = new Intent(this, DataCollectionService.class);
-        String value=timestamp+" Session:"+session_id;
+        String value=timestamp+" session:"+session_id;
         Log.d(TAG, "startDataCollection: "+value);
         beaconDiscoveryService.putExtra("SESSION_ID",value);
         session_id+=1;

@@ -3,7 +3,7 @@
     <PreferenceCategory>
 
         <EditTextPreference
-            android:defaultValue="getting-started-db/"
+            android:defaultValue="getting-started-db"
             android:icon="@drawable/ic_storage_black_24dp"
             android:key="db_name"
             android:selectAllOnFocus="true"
