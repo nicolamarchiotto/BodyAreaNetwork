@@ -4,10 +4,7 @@ import android.util.Log;
 
 import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDictionary;
-import com.example.progettogio.callback.subsessionCallback;
-import com.example.progettogio.services.DataCollectionService;
-
-import static androidx.constraintlayout.widget.Constraints.TAG;
+import com.example.progettogio.callback.SubSectionCallback;
 
 /**
  * Oggetto che contiene le liste di ogni sensore, contenente i dati della registrazione.
@@ -26,16 +23,16 @@ public class NordicPeriodSample {
     private MutableArray thingyGravityVectorMutableArray;
     private int subsession;
     private int nordic_num;
-    private subsessionCallback callback;
+    private SubSectionCallback callback;
 
-    public NordicPeriodSample(String session_id, int nordic_number, String deviceAddress, subsessionCallback subsessionCallback){
+    public NordicPeriodSample(int nordic_number, String deviceAddress, SubSectionCallback subsessionCallback){
         thingyQuaternionMutableArray=new MutableArray();
         thingyAccellerometerMutableArray=new MutableArray();
         thingyGyroscopeMutableArray=new MutableArray();
         thingyCompassMutableArray=new MutableArray();
         thingyEulerAngleMutableArray=new MutableArray();
         thingyGravityVectorMutableArray=new MutableArray();
-        id=session_id;
+//        id=session_id;
         nordicAddress=deviceAddress;
         subsession=0;
         nordic_num=nordic_number;
@@ -144,8 +141,6 @@ public class NordicPeriodSample {
         return array;
     }
 
-    public String getId() { return id; }
-
     public String getNordicAddress() { return nordicAddress; }
 
     public int getSubsession() { return subsession; }
@@ -170,7 +165,7 @@ public class NordicPeriodSample {
 
         if (size>500) {
             Log.d(TAG, "checksize: ");
-            callback.onCondTrue(nordicAddress);
+            callback.doNordicSubsection(nordicAddress);
             nextSubsession();
         }
     }

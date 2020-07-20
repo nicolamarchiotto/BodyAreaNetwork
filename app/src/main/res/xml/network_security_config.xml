@@ -2,7 +2,9 @@
 <network-security-config>
 <!--    File used before discovering options usesCleartextTraffic="true" in android manifest,
         by default in android 9 it is disabled, neccesary to communicate with syncgateway-->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.0.103</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>

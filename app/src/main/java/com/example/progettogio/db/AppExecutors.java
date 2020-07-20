@@ -22,7 +22,7 @@ public class AppExecutors {
      * new instance of AppExecutors
      */
     public AppExecutors() {
-        this(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(3),
+        this(Executors.newFixedThreadPool(3), Executors.newFixedThreadPool(3),
                 new MainThreadExecutor());
     }
 

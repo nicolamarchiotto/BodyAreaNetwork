@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     //
     private Switch scanSwitch;
-    private Button collectionButton;
+    private Switch collectionSwitch;
 
     //Nordic stuff
     private ThingySdkManager thingySdkManager;
@@ -93,18 +93,16 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
         timestamp = new Timestamp(System.currentTimeMillis());
         Log.d(TAG, "onCreate: "+timestamp);
 
         //view binding
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        toolbar =  (Toolbar) activityMainBinding.toolbar;
+        setSupportActionBar(toolbar);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
 
         //Nordic SDK
         thingySdkManager = ThingySdkManager.getInstance();
@@ -147,24 +145,26 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 Toast.makeText(getApplicationContext(), "BLE scan stopped.", Toast.LENGTH_SHORT).show();
             }
         });
-        collectionButton=activityMainBinding.collectionButton;
-        collectionButton.setOnClickListener(v -> {
-            if(!isCollectingData){
+
+        collectionSwitch=activityMainBinding.collectionSwitch;
+        collectionSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Log.d(TAG, "collectionswitch listener called: ");
+            if (isChecked){
                 if(thingySdkManager.getConnectedDevices().size()==0){
                     Toast.makeText(getApplicationContext(),"You have to connect at least one device before starting the data collection", Toast.LENGTH_SHORT).show();
+                    buttonView.setChecked(false);
                 }
                 else{
                     startDataCollection();
-                    isCollectingData=true;
                     Toast.makeText(getApplicationContext(), "Data Collection Started", Toast.LENGTH_SHORT).show();
                 }
-            }
-            else{
+            }else {
                 stopDataCollection();
                 isCollectingData=false;
                 Toast.makeText(getApplicationContext(), "Data Collection Stopped", Toast.LENGTH_SHORT).show();
             }
         });
+
 
         DataMapper.getInstance().setContext(getApplicationContext());
     }
@@ -184,8 +184,9 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.database_settings) {
+            Intent i = new Intent(this, MyPreferencesActivity.class);
+            startActivity(i);
         }
 
         return super.onOptionsItemSelected(item);

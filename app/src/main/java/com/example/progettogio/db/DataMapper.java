@@ -38,6 +38,7 @@ import com.couchbase.lite.ReplicatorConfiguration;
 import com.couchbase.lite.URLEndpoint;
 import com.example.progettogio.R;
 import com.example.progettogio.models.NordicPeriodSample;
+import com.example.progettogio.models.PhonePeriodSample;
 import com.example.progettogio.views.MainActivity;
 
 import java.net.URI;
@@ -57,6 +58,8 @@ public class DataMapper {
     private Replicator replicator;
 
     private boolean counter_error;
+
+    private boolean isReplicating=false;
 
     //    private ProgressDialogFragment mProgressDialog;
 
@@ -91,8 +94,8 @@ public class DataMapper {
     }
 
 
-    public void saveNordicPeriodSampleIntoDbLocal(NordicPeriodSample nordicPeriodSample){
-        String document_id=nordicPeriodSample.getId()+"."+nordicPeriodSample.getSubsession()+" - N"+nordicPeriodSample.getNordic_num();
+    public void saveNordicPeriodSampleIntoDbLocal(NordicPeriodSample nordicPeriodSample,String session_id){
+        String document_id=session_id+"."+nordicPeriodSample.getSubsession()+" - N"+nordicPeriodSample.getNordic_num();
         Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument newDoc = new MutableDocument(document_id);
         newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample.getNordicAddress()));
@@ -123,6 +126,9 @@ public class DataMapper {
         });
 
 
+
+
+
 //        while(isSaving[0]){
 //            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: waiting end of saving into local db");
 //        }
@@ -133,6 +139,35 @@ public class DataMapper {
 //            }
 //        });
 
+    }
+
+    public void savePhonePeriodSampleIntoDbLocal(PhonePeriodSample phonePeriodSample,String session_id){
+        String document_id=session_id+"."+phonePeriodSample.getSubsession()+" - P";
+        Log.d(TAG, "savePhonePeriodSampleIntoDbLocal: saving "+document_id+" into local db");
+        MutableDocument doc = new MutableDocument(document_id);
+        doc.setArray("Name", new MutableArray().addString("Phone"));
+        doc.setArray("pLinearAccelerometer", phonePeriodSample.getPhoneLinearAccelerometerMutableArray())
+                .setArray("pAccellerometer", phonePeriodSample.getPhoneAccelerometerMutableArray())
+                .setArray("pGyroscope", phonePeriodSample.getPhoneGyroscopeMutableArray())
+                .setArray("pMagneto", phonePeriodSample.getPhoneMagnetoMutableArray());
+
+
+
+        mAppExecutors.diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mDatabase.save(doc);
+
+                    Log.d(TAG, "saving phonePeriodSample into local db: ");
+//                    Document document=mDatabase.getDocument(phonePeriodSample.getId());
+//                    MutableDocument mutableDocument=document.toMutable();
+//                    Log.d(TAG, "saving phonePeriodSample into db: Testing - size of the linearMutableArray: "+mutableDocument.getArray("pAccellerometer").count());
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
     
     public void setReplicator(){
@@ -167,13 +202,14 @@ public class DataMapper {
             }
             if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.STOPPED) {
                 Log.i(TAG, "Replication stopped");
+                isReplicating=false;
             }
         });
 
         //controllo quali dati il replicator sta caricando su db remoto.
         replicator.addDocumentReplicationListener(replication -> {
             for (ReplicatedDocument document : replication.getDocuments()) {
-                Toast.makeText(mContext, "Recording stopped...Uploading "+ document.getID()+" to database", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "Uploading "+ document.getID()+" to database", Toast.LENGTH_SHORT).show();
                 CouchbaseLiteException err = document.getError();
                 if (err != null) {
                     // There was an error
@@ -189,51 +225,53 @@ public class DataMapper {
     }
 
     public void startReplication() {
-        mAppExecutors.networkIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "startReplication: ");
-                replicator.start();
-            }
-        });
-    }
-//    /**
-//     * Estrazione url db remoto dai settings.
-//     *
-//     * @return url+name formato: ws://ip:porta/db_name
-//     */
-//    private String getDestination() {
-//        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-//        String db_name = pref.getString("db_name", "");
-//        String url = pref.getString("db_url", "");
-//        return url + db_name;
-//    }
-//
-//    /**
-//     * Estrazione Username per accesso al db dai settings.
-//     *
-//     * @return username
-//     */
-//    private String getUsername() {
-//        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-//        return pref.getString("fing_username", "");
-//    }
-//
-//    /**
-//     * Estrazione Password per accesso al db dai settings.
-//     *
-//     * @return password
-//     */
-//    private String getPassword() {
-//        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
-//        return pref.getString("fing_password", "");
-//    }
 
+        if(isReplicating){
+            Log.d(TAG, "startReplication: Replication already ongoing");
+        }
+        else{
+            isReplicating=true;
+            mAppExecutors.networkIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "startReplication: ");
+                    replicator.start();
+                }
+            });
+        }
+
+    }
+
+
+    /**
+     * Estrazione Username per accesso al db dai settings.
+     *
+     * @return username
+     */
+    private String getUsername() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+        return pref.getString("fing_username", "");
+    }
+
+    /**
+     * Estrazione Password per accesso al db dai settings.
+     *
+     * @return password
+     */
+    private String getPassword() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
+        return pref.getString("fing_password", "");
+    }
+    /**
+     * Estrazione url db remoto dai settings.
+     *
+     * @return url+name formato: ws://ip:porta/db_name
+     */
     private String getDestination() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
         String db_name = pref.getString("db_name", "");
         String url = pref.getString("db_url", "");
-        Log.d(TAG, "getDestination: "+url+db_name);
-        return url + db_name;
+        Log.d(TAG, "getDestination: "+url+"/"+db_name);
+        return url+"/"+db_name;
     }
 }

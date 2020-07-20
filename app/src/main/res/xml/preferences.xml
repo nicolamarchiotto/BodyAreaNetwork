@@ -8,15 +8,15 @@
             android:key="db_name"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:summary="The name of your database"
+            android:summary="The name of your sync-gateway database"
             android:title="Name" />
         <EditTextPreference
-            android:defaultValue="ws://192.168.0.103:4984/"
+            android:defaultValue="ws://192.168.0.102:4984"
             android:icon="@drawable/ic_insert_link_black_24dp"
             android:key="db_url"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:summary="Your database (or hosted database) url"
+            android:summary="Your hosted database url with port\nExample: ws://192.168.0.102:4984"
             android:title="URL" />
         <EditTextPreference
             android:defaultValue="example"
@@ -24,7 +24,7 @@
             android:key="fing_username"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:summary="Your db usarname"
+            android:summary="Your db usarname - Optional"
             android:title="Username" />
         <EditTextPreference
             android:defaultValue="example"
@@ -32,7 +32,7 @@
             android:key="fing_password"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:summary="Your db password"
+            android:summary="Your db password - Optional"
             android:title="Password" />
 
     </PreferenceCategory>
