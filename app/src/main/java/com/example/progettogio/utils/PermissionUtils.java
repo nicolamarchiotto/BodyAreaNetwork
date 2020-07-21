@@ -13,6 +13,7 @@ import java.util.List;
 public class PermissionUtils {
 
     public static void askForPermissions(Activity activity) {
+
         List<String> permissionsToAsk = new ArrayList<>();
         int requestResult = 0;
 
@@ -54,6 +55,7 @@ public class PermissionUtils {
 
         if (permissionsToAsk.size() > 0) {
             ActivityCompat.requestPermissions(activity, permissionsToAsk.toArray(new String[permissionsToAsk.size()]), requestResult);
+
         }
     }
 }

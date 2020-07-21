@@ -2,7 +2,10 @@ package com.example.progettogio.views;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -16,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.DataBindingUtil;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,6 +32,7 @@ import com.example.progettogio.adapters.DevsSelectedListener;
 import com.example.progettogio.databinding.ActivityMainBinding;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.models.Scanner_BTLE;
+import com.example.progettogio.services.BluetoothConnectionService;
 import com.example.progettogio.services.DataCollectionService;
 import com.example.progettogio.services.ThingyService;
 import com.example.progettogio.utils.PermissionUtils;
@@ -89,6 +94,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private static int session_id=1;
     private Timestamp timestamp;
 
+    private BluetoothConnectionService mBluetoothConnectionService;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,8 +120,11 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         //ask for permission
         PermissionUtils.askForPermissions(this);
 
+
         //get bluetooth adapter
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver,new IntentFilter("incomingMessage"));
 
         enableBt();
 
@@ -136,7 +146,11 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         scanSwitch=activityMainBinding.scanSwitch;
         scanSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked){
-
+                enableBt();
+                if (!bluetoothAdapter.isEnabled()){
+                    buttonView.setChecked(false);
+                    return;
+                }
                 startScan();
                 Toast.makeText(getApplicationContext(), "BLE scan started.", Toast.LENGTH_SHORT).show();
             }else {
@@ -157,6 +171,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 else{
                     startDataCollection();
                     Toast.makeText(getApplicationContext(), "Data Collection Started", Toast.LENGTH_SHORT).show();
+                    mBluetoothConnectionService=new BluetoothConnectionService(this);
                 }
             }else {
                 stopDataCollection();
@@ -213,6 +228,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
         //thingy listener
         ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
+        unregisterReceiver(mReceiver);
 
         //stop scan
         stopScan();
@@ -235,35 +251,19 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         binder = (ThingyService.ThingyBinder) thingySdkManager.getThingyBinder();
     }
 
-
-    /**
-     *
-     */
     private void startScan(){
-
-        //
         scannerBLE.startScan(scanCallback);
     }
 
-
-    /**
-     *
-     */
     private void stopScan(){
-
-        //
         scannerBLE.stopScan(scanCallback);
 
-        //
         scanDevicesList.clear();
         devicesScanAdapters.notifyDataSetChanged();
 
     }
 
 
-    /**
-     *
-     */
     private final ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, @NonNull ScanResult result) {
@@ -440,6 +440,15 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     };
 
 
+    private BroadcastReceiver mReceiver=new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message=intent.getStringExtra("theMessage");
+            Log.d(TAG, "onReceive: "+message);
+        }
+    };
+
+
     /**
      * listener per la recyclerview dei device connessi
      * @param address
@@ -481,12 +490,5 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         Toast.makeText(getApplicationContext(),"Data Collection Stopped", Toast.LENGTH_SHORT).show();
         Intent beaconDiscoveryService = new Intent(this, DataCollectionService.class);
         stopService(beaconDiscoveryService);
-
-        // todo: handle on service
-        // ThingyListenerHelper.registerThingyListener(this, mThingyListener);
-
-//        for(BluetoothDevice dev : thingySdkManager.getConnectedDevices()) {
-//            thingySdkManager.disconnectFromThingy(dev);
-//        }
     }
 }
