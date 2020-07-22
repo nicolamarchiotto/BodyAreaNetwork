@@ -36,11 +36,15 @@ import com.example.progettogio.services.BluetoothConnectionService;
 import com.example.progettogio.services.DataCollectionService;
 import com.example.progettogio.services.ThingyService;
 import com.example.progettogio.utils.PermissionUtils;
+import com.wagoo.wgcom.WagooGlassesInterface;
+import com.wagoo.wgcom.connection.WagooConnectionHandler;
+import com.wagoo.wgcom.connection.WagooDevice;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+import kotlin.Unit;
 import no.nordicsemi.android.support.v18.scanner.ScanCallback;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
 import no.nordicsemi.android.thingylib.BaseThingyService;
@@ -85,6 +89,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private RecyclerView selectedRecyclerView;
     private DevicesSelectedAdapters devicesSelectedAdapters;
 
+    private WagooGlassesInterface wagooGlassesInterface;
+
     private Toolbar toolbar;
 
     /**
@@ -114,8 +120,67 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         //Nordic SDK
         thingySdkManager = ThingySdkManager.getInstance();
 
+        wagooGlassesInterface = WagooGlassesInterface.Companion.bleAutoInit(
+                getApplicationContext(), new WagooConnectionHandler() {
+
+                    boolean ison = false;
+
+                    @Override
+                    public void onDisconnected(WagooGlassesInterface wagooInterface) {
+                    }
+
+                    @Override
+                    public void onConnecting(WagooGlassesInterface wagooInterface) {
+
+                    }
+
+                    @Override
+                    public void onConnected(WagooGlassesInterface wagooInterface) {
+                        ison = !ison;
+
+                        wagooGlassesInterface.enable_collect_mode();
+
+                        wagooGlassesInterface.set_lights(1.0f, 0, ison, ison, ison);
+
+                    }
+
+                    @Override
+                    public void onDeviceFound(WagooGlassesInterface wagooInterface, WagooDevice device) {
+                    }
+                },
+                null);
+
+
         //get scan
         scannerBLE = Scanner_BTLE.getInstance();
+
+
+        wagooGlassesInterface.register_collect_sensors_callback((accelGyroInfo) -> {
+
+            Log.d("SENSORS", "" + accelGyroInfo.getAccl().getX());
+
+
+            return Unit.INSTANCE;
+        });
+
+        new Thread(() -> {
+
+            try {
+                Thread.sleep(4000);
+
+
+                while (true) {
+                    wagooGlassesInterface.connect();
+                    Thread.sleep(4000);
+                    wagooGlassesInterface.disable_collect_mode();
+                    wagooGlassesInterface.disconnect();
+                    Thread.sleep(4000);
+                }
+            }
+            catch (Exception e) {
+
+            }
+        }).start();
         
         //ask for permission
         PermissionUtils.askForPermissions(this);

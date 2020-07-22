@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
+
 android {
     compileSdkVersion 29
 
@@ -26,6 +29,10 @@ android {
         sourceCompatibility = 1.8
         targetCompatibility = 1.8
     }
+
+    packagingOptions {
+        exclude 'META-INF/kotlinx-coroutines-core.kotlin_module'
+    }
 }
 
 dependencies {
@@ -34,6 +41,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation project(path: ':wgcom')
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
@@ -44,6 +52,9 @@ dependencies {
     // local thingylib
     implementation project(path: ':thingylib')
 
+    // wgcom (wagoo glasses connection library)
+    implementation project(path: ':wgcom')
+
     //recyclerview
     implementation 'androidx.recyclerview:recyclerview:1.2.0-alpha01'
 
@@ -51,5 +62,8 @@ dependencies {
     'com.android.support:appcompat-v7:23.1.1'
 
     implementation 'com.couchbase.lite:couchbase-lite-android:2.6.0'
+
+    implementation "androidx.core:core-ktx:1.0.1"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72"
 
 }
