@@ -18,7 +18,6 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.example.progettogio.R;
-
 import com.example.progettogio.callback.SubSectionCallback;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.models.NordicPeriodSample;
@@ -69,6 +68,26 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
         phonePeriodSample=new PhonePeriodSample(mPhoneSensorManager,this);
         nordicHashMap=new HashMap<>();
+        
+        int nordic_number=1;
+        for(BluetoothDevice device : thingySdkManager.getConnectedDevices()) {
+            Log.d(TAG, "startCollection: connettendo il device "+device.getAddress()+" al listener in DataCollectorService");
+            ThingyListenerHelper.registerThingyListener(getApplicationContext(),thingyListener,device);
+            nordicHashMap.put(device.getAddress(),new NordicPeriodSample(nordic_number,device.getAddress(),this));
+            nordic_number+=1;
+
+//            thingySdkManager.enableEnvironmentNotifications(device,true);
+
+            thingySdkManager.enableGravityVectorNotifications(device,true);
+
+            thingySdkManager.enableUiNotifications(device, true);
+            thingySdkManager.enableSoundNotifications(device, true);
+            thingySdkManager.enableMotionNotifications(device, true);
+
+            Log.d(TAG, "startCollection: fine attivazione sensori per device "+device.getAddress());
+        }
+
+
 
     }
 
@@ -87,19 +106,21 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
     private void startCollection(){
         int nordic_number=1;
-        for(BluetoothDevice device : thingySdkManager.getConnectedDevices()) {
-            Log.d(TAG, "startCollection: connettendo il device "+device.getAddress()+" al listener in DataCollectorService");
-            ThingyListenerHelper.registerThingyListener(getApplicationContext(),thingyListener,device);
-            nordicHashMap.put(device.getAddress(),new NordicPeriodSample(nordic_number,device.getAddress(),this));
-            nordic_number+=1;
+//        for(BluetoothDevice device : thingySdkManager.getConnectedDevices()) {
+//            Log.d(TAG, "startCollection: connettendo il device "+device.getAddress()+" al listener in DataCollectorService");
+//            ThingyListenerHelper.registerThingyListener(getApplicationContext(),thingyListener,device);
+//            nordicHashMap.put(device.getAddress(),new NordicPeriodSample(nordic_number,device.getAddress(),this));
+//            nordic_number+=1;
+//
+//            thingySdkManager.enableEnvironmentNotifications(device, true);
+//            thingySdkManager.enableUiNotifications(device, true);
+//            thingySdkManager.enableSoundNotifications(device, true);
+//            thingySdkManager.enableMotionNotifications(device, true);
+//
+//            Log.d(TAG, "startCollection: fine attivazione sensori per device "+device.getAddress());
+//        }
+//
 
-            thingySdkManager.enableEnvironmentNotifications(device, true);
-            thingySdkManager.enableUiNotifications(device, true);
-            thingySdkManager.enableSoundNotifications(device, true);
-            thingySdkManager.enableMotionNotifications(device, true);
-
-            Log.d(TAG, "startCollection: fine attivazione sensori per device "+device.getAddress());
-        }
     }
     private void setNotification(String title, String descr) {
         PendingIntent pendingIntent =
@@ -156,12 +177,12 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     private final ThingyListener thingyListener = new ThingyListener() {
         @Override
         public void onDeviceConnected(BluetoothDevice device, int connectionState) {
-
+            Log.d(TAG, "onDeviceConnected: "+device.getAddress());
         }
 
         @Override
         public void onDeviceDisconnected(BluetoothDevice device, int connectionState) {
-
+            Log.d(TAG, "onDeviceDisconnected: "+device.getAddress()+" connectionState: "+connectionState);
         }
 
         @Override
@@ -176,27 +197,27 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
         @Override
         public void onTemperatureValueChangedEvent(BluetoothDevice bluetoothDevice, String temperature) {
-
+            Log.d(TAG, "onTemperatureValueChangedEvent: "+temperature);
         }
 
         @Override
         public void onPressureValueChangedEvent(BluetoothDevice bluetoothDevice, String pressure) {
-
+            Log.d(TAG, "onPressureValueChangedEvent: "+pressure);
         }
 
         @Override
         public void onHumidityValueChangedEvent(BluetoothDevice bluetoothDevice, String humidity) {
-
+            Log.d(TAG, "onHumidityValueChangedEvent: "+humidity);
         }
 
         @Override
         public void onAirQualityValueChangedEvent(BluetoothDevice bluetoothDevice, int eco2, int tvoc) {
-
+            Log.d(TAG, "onAirQualityValueChangedEvent: "+eco2+" "+tvoc);
         }
 
         @Override
         public void onColorIntensityValueChangedEvent(BluetoothDevice bluetoothDevice, float red, float green, float blue, float alpha) {
-
+            Log.d(TAG, "onColorIntensityValueChangedEvent: ");
         }
 
         @Override
@@ -257,7 +278,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         @Override
         public void onGravityVectorChangedEvent(BluetoothDevice bluetoothDevice, float x, float y, float z) {
             nordicHashMap.get(bluetoothDevice.getAddress()).addThingyGravityVectorData(bluetoothDevice.getAddress(),x,y,z, SystemClock.elapsedRealtimeNanos());
-//            Log.d(TAG, "onGravityVectorChangedEvent: ");
+            Log.d(TAG, "onGravityVectorChangedEvent: "+bluetoothDevice.getAddress());
         }
 
         @Override

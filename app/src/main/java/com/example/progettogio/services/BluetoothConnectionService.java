@@ -1,6 +1,8 @@
 package com.example.progettogio.services;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
@@ -14,6 +16,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.UUID;
+
+/**
+ * Created by User on 12/21/2016.
+ */
 
 public class BluetoothConnectionService {
     private static final String TAG = "BluetoothConnectionService";
@@ -46,6 +52,7 @@ public class BluetoothConnectionService {
             mInsecureAcceptThread.start();
         }
     }
+
 
     private void connected(BluetoothSocket mmSocket) {
         Log.d(TAG, "connected: Starting.");
@@ -185,5 +192,15 @@ public class BluetoothConnectionService {
                 mmSocket.close();
             } catch (IOException e) { }
         }
+    }
+
+    public void write(byte[] out) {
+        // Create temporary object
+        ConnectedThread r;
+
+        // Synchronize a copy of the ConnectedThread
+        Log.d(TAG, "write: Write Called.");
+        //perform the write
+        mConnectedThread.write(out);
     }
 }

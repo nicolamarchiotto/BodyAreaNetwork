@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -31,6 +32,7 @@ import com.example.progettogio.adapters.DevsScanListener;
 import com.example.progettogio.adapters.DevsSelectedListener;
 import com.example.progettogio.databinding.ActivityMainBinding;
 import com.example.progettogio.db.DataMapper;
+import com.example.progettogio.models.NordicSensorList;
 import com.example.progettogio.models.Scanner_BTLE;
 import com.example.progettogio.services.BluetoothConnectionService;
 import com.example.progettogio.services.DataCollectionService;
@@ -39,6 +41,7 @@ import com.example.progettogio.utils.PermissionUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import no.nordicsemi.android.support.v18.scanner.ScanCallback;
@@ -84,6 +87,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private List<BluetoothDevice> selectedDeviceList = new ArrayList<>();
     private RecyclerView selectedRecyclerView;
     private DevicesSelectedAdapters devicesSelectedAdapters;
+
+    //hasmMap of sensorsList of connected nordic devices
+
+    private HashMap<String,NordicSensorList> sensorHashMap;
 
     private Toolbar toolbar;
 
@@ -141,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         //devicesSelectedAdapters = new DevicesSelectedAdapters(thingySdkManager.getConnectedDevices(), this);
         selectedRecyclerView.setAdapter(devicesSelectedAdapters);
 
+        //sensorHashMap
+        sensorHashMap=new HashMap<>();
 
         //set toolbar
         scanSwitch=activityMainBinding.scanSwitch;
@@ -171,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 else{
                     startDataCollection();
                     Toast.makeText(getApplicationContext(), "Data Collection Started", Toast.LENGTH_SHORT).show();
-                    mBluetoothConnectionService=new BluetoothConnectionService(this);
+//                    mBluetoothConnectionService=new BluetoothConnectionService(this);
                 }
             }else {
                 stopDataCollection();
@@ -227,8 +236,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         thingySdkManager.unbindService(this);
 
         //thingy listener
-        ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
-        unregisterReceiver(mReceiver);
+//        ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
 
         //stop scan
         stopScan();
@@ -319,6 +328,9 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             selectedDeviceList.add(device);
             devicesSelectedAdapters.notifyDataSetChanged();
 
+            sensorHashMap.put(device.getAddress(),new NordicSensorList(device));
+            setNordicSensors(sensorHashMap.get(device.getAddress()));
+
             scanDevicesList.remove(device);
             devicesScanAdapters.notifyDataSetChanged();
 
@@ -328,6 +340,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         public void onDeviceDisconnected(BluetoothDevice device, int connectionState) {
             Log.d(TAG, "onDeviceDisconnected: ");
             Toast.makeText(getApplicationContext(), "Disconnected " + device.getName(), Toast.LENGTH_SHORT).show();
+
+            sensorHashMap.remove(device.getAddress());
 
             selectedDeviceList.remove(device);
             devicesSelectedAdapters.notifyDataSetChanged();
@@ -456,29 +470,55 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     @Override
     public void onDevSelectecClick(String address) {
-        Toast.makeText(getApplicationContext(), "Connected " + address, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getApplicationContext(), "Connected " + address, Toast.LENGTH_SHORT).show();
+        startDetailDialog(address,sensorHashMap.get(address));
     }
 
     @Override
     public void onDevSelectedLongClick(String address) {
-
             for (BluetoothDevice device : selectedDeviceList){
                 if (device.getAddress().equals(address)){
                     thingySdkManager.disconnectFromThingy(device);
+                    Toast.makeText(getApplicationContext(), "Disconnected " + address, Toast.LENGTH_SHORT).show();
                     break;
                 }
             }
     }
 
+    private void setNordicSensors(NordicSensorList sensorsList){
+        thingySdkManager.enableTemperatureNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(0).getState());
+        thingySdkManager.enableHumidityNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(1).getState());
+        thingySdkManager.enablePressureNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(2).getState());
+        thingySdkManager.enableAirQualityNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(3).getState());
+        thingySdkManager.enableColorNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(4).getState());
+        thingySdkManager.enableTapNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(5).getState());
+        thingySdkManager.enableOrientationNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(6).getState());
+        thingySdkManager.enablePedometerNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(7).getState());
+        thingySdkManager.enableQuaternionNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(8).getState());
+        thingySdkManager.enableEulerNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(9).getState());
+        thingySdkManager.enableRotationMatrixNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(10).getState());
+        thingySdkManager.enableGravityVectorNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(11).getState());
+        thingySdkManager.enableHeadingNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(12).getState());
+        thingySdkManager.enableRawDataNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(13).getState());
+        thingySdkManager.enableSpeakerStatusNotifications(sensorsList.getBluetoothDevice(),sensorsList.get(14).getState());
+        thingySdkManager.enableThingyMicrophone(sensorsList.getBluetoothDevice(),sensorsList.get(15).getState());
+    }
+
+    private void startDetailDialog(String devAddr, NordicSensorList sensorList) {
+        DeviceSettingsFragment deviceSettingsFragment = new DeviceSettingsFragment(devAddr,sensorList,thingySdkManager);
+        deviceSettingsFragment.show(getSupportFragmentManager(), "device_sensors");
+    }
+
     public void startDataCollection(){
         Log.d(TAG, "startDataCollection: ");
         Toast.makeText(getApplicationContext(),"Data Collection Started", Toast.LENGTH_SHORT).show();
-        ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
+//        ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
 
         Intent beaconDiscoveryService = new Intent(this, DataCollectionService.class);
         String value=timestamp+" session:"+session_id;
         Log.d(TAG, "startDataCollection: "+value);
         beaconDiscoveryService.putExtra("SESSION_ID",value);
+
         session_id+=1;
 
         startForegroundService(beaconDiscoveryService);
