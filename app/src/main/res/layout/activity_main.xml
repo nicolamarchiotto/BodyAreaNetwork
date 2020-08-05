@@ -36,12 +36,25 @@
                 android:id="@+id/collection_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="READY FOR COLLECTION"
+                android:text="COLLECT DATA"
                 android:textSize="15sp"
                 android:visibility="visible"
                 android:layout_gravity="right"
                 android:textColor="@color/black"
                 />
+
+            <Switch
+            android:id="@+id/ready_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="READY"
+            android:textSize="15sp"
+            android:visibility="visible"
+            android:layout_gravity="right"
+            android:layout_toRightOf="@+id/collection_switch"
+            android:textColor="@color/black"
+                />
+
             <Switch
                 android:id="@+id/scan_switch"
                 android:layout_width="wrap_content"
@@ -51,7 +64,7 @@
                 android:visibility="visible"
                 android:layout_gravity="right"
                 android:textColor="@color/black"
-                android:layout_toRightOf="@id/collection_switch"
+                android:layout_toRightOf="@id/ready_switch"
                 />
         </RelativeLayout>
         <RelativeLayout

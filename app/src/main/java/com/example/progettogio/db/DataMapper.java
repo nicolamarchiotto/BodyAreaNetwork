@@ -258,6 +258,7 @@ public class DataMapper {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(mContext);
         return pref.getString("fing_password", "");
     }
+
     /**
      * Estrazione url db remoto dai settings.
      *

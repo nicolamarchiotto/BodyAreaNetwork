@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     //
     private Switch scanSwitch;
     private Switch collectionSwitch;
+    private Switch readySwitch;
 
     //Nordic stuff
     private ThingySdkManager thingySdkManager;
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private static int session_id=1;
     private Timestamp timestamp;
 
-    private BluetoothConnectionService mBluetoothConnectionService;
+    private BluetoothConnectionService mBluetoothConnectionService=null;
 
 
     @Override
@@ -182,13 +183,23 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 else{
                     startDataCollection();
                     Toast.makeText(getApplicationContext(), "Data Collection Started", Toast.LENGTH_SHORT).show();
-//                    mBluetoothConnectionService=new BluetoothConnectionService(this);
                 }
             }else {
                 stopDataCollection();
                 isCollectingData=false;
                 Toast.makeText(getApplicationContext(), "Data Collection Stopped", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        readySwitch=activityMainBinding.readySwitch;
+        readySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Log.d(TAG, "readySwitch listener called: ");
+            if(isChecked){
+                Toast.makeText(this, "Waiting for doctor phone", Toast.LENGTH_SHORT).show();
+                mBluetoothConnectionService=new BluetoothConnectionService(this);
+            }
+            else
+                mBluetoothConnectionService.closeAcceptThread();
         });
 
 
@@ -244,6 +255,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         //stop scan
         stopScan();
         scanSwitch.setChecked(false);
+        if(!(mBluetoothConnectionService ==null)){
+            mBluetoothConnectionService.closeAcceptThread();
+            mBluetoothConnectionService.closeConnectedThread();
+        }
     }
 
     public void enableBt(){
@@ -448,6 +463,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         @Override
         public void onReceive(Context context, Intent intent) {
             String message=intent.getStringExtra("theMessage");
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
             Log.d(TAG, "onReceive: "+message);
         }
     };
