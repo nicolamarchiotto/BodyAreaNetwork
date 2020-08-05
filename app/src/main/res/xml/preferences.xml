@@ -34,6 +34,11 @@
             android:singleLine="true"
             android:summary="Your db password - Optional"
             android:title="Password" />
-
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="phone_sensors"
+            android:summary="Enable phone sensors"
+            android:title="Phone Sensors"
+            android:icon="@drawable/phone_icon"/>
     </PreferenceCategory>
 </PreferenceScreen>

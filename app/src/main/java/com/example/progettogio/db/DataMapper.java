@@ -48,7 +48,7 @@ import java.util.ArrayList;
 public class DataMapper {
     private static final DataMapper ourInstance = new DataMapper();
     private static final String TAG = "DataMapper";
-    private Database mDatabase;
+    private Database mDatabase=null;
     private Context mContext;
 
     private AppExecutors mAppExecutors;
@@ -92,20 +92,31 @@ public class DataMapper {
     public static DataMapper getInstance() {
         return ourInstance;
     }
-
-
+    
     public void saveNordicPeriodSampleIntoDbLocal(NordicPeriodSample nordicPeriodSample,String session_id){
-        String document_id=session_id+"."+nordicPeriodSample.getSubsession()+" - N"+nordicPeriodSample.getNordic_num();
+        String document_id=session_id+"."+nordicPeriodSample.getSubsession()+" - "+nordicPeriodSample.getNordicName();
         Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument newDoc = new MutableDocument(document_id);
         newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample.getNordicAddress()));
-        newDoc.setArray("tQuaternion", nordicPeriodSample.getThingyQuaternionMutableArray())
-                .setArray("tAccellerometer", nordicPeriodSample.getThingyAccellerometerMutableArray())
+        newDoc.setArray("tTemperature",nordicPeriodSample.getThingyTemperatureMutableArray())
+                .setArray("tPressure", nordicPeriodSample.getThingyPressureMutableArray())
+                .setArray("tHumidity", nordicPeriodSample.getThingyHumidityMutableArray())
+                .setArray("tAirQuality", nordicPeriodSample.getThingyAirQualityMutableArray())
+                .setArray("tColorIntensity", nordicPeriodSample.getThingyColorIntensityMutableArray())
+                .setArray("tButtonState",nordicPeriodSample.getThingyButtonStateMutableArray())
+                .setArray("tTap", nordicPeriodSample.getThingyTapMutableArray())
+                .setArray("tOrientation", nordicPeriodSample.getThingyOrientationMutableArray())
+                .setArray("tQuaternion", nordicPeriodSample.getThingyQuaternionMutableArray())
+                .setArray("tPedometer", nordicPeriodSample.getThingyPedometerMutableArray())
+                .setArray("tAccellerometer", nordicPeriodSample.getThingyAccelerometerMutableArray())
                 .setArray("tGyroscope", nordicPeriodSample.getThingyGyroscopeMutableArray())
                 .setArray("tCompass", nordicPeriodSample.getThingyCompassMutableArray())
                 .setArray("tEulerAngle", nordicPeriodSample.getThingyEulerAngleMutableArray())
-                .setArray("tGravityVector", nordicPeriodSample.getThingyGravityVectorMutableArray());
-
+                .setArray("tRotationMatrix", nordicPeriodSample.getThingyRotationMatrixMutableArray())
+                .setArray("tHeading", nordicPeriodSample.getThingyHeadingMutableArray())
+                .setArray("tGravityVector", nordicPeriodSample.getThingyGravityVectorMutableArray())
+                .setArray("tSpeaker", nordicPeriodSample.getThingySpeakerMutableArray())
+                .setArray("tMicrophone", nordicPeriodSample.getThingyMicrophoneMutableArray());
 
 
 
@@ -124,21 +135,6 @@ public class DataMapper {
                 }
             }
         });
-
-
-
-
-
-//        while(isSaving[0]){
-//            Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: waiting end of saving into local db");
-//        }
-//        mAppExecutors.networkIO().execute(new Runnable() {
-//            @Override
-//            public void run() {
-//                startReplication();
-//            }
-//        });
-
     }
 
     public void savePhonePeriodSampleIntoDbLocal(PhonePeriodSample phonePeriodSample,String session_id){

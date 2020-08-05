@@ -30,15 +30,6 @@
             app:layout_constraintStart_toEndOf="@+id/fragment_device_settings_btn_back"
             app:layout_constraintTop_toTopOf="@+id/fragment_device_settings_btn_back" />
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/fragment_device_settings_txt_connection_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="32dp"
-            android:text="Status: Not connected"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fragment_device_settings_btn_back" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/fragment_device_settings_txt_name"
@@ -48,7 +39,7 @@
             android:layout_marginTop="16dp"
             android:text="Name: xyz"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fragment_device_settings_txt_connection_status" />
+            app:layout_constraintTop_toBottomOf="@+id/fragment_device_settings_btn_back" />
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/fragment_device_settings_txt_addr"
@@ -68,7 +59,8 @@
             android:scrollbars="none"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/fragment_device_settings_txt_addr" />
+            app:layout_constraintTop_toBottomOf="@+id/fragment_device_settings_txt_addr"
+            tools:listitem="@layout/sensor_item" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

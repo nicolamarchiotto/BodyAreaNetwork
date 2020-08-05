@@ -4,6 +4,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
@@ -17,10 +19,12 @@ public class SensorsAdapter extends RecyclerView.Adapter<SensorsAdapter.ThingySe
 
     private static final String TAG = "SensorsAdapter";
 
-    public NordicSensorList sensorList;
+    private NordicSensorList sensorList;
+    private DevsSensorsListener sensorsListener;
 
-    public SensorsAdapter(NordicSensorList list){
+    public SensorsAdapter(NordicSensorList list, DevsSensorsListener listener){
         sensorList=list;
+        sensorsListener=listener;
     }
 
     @NonNull
@@ -43,20 +47,40 @@ public class SensorsAdapter extends RecyclerView.Adapter<SensorsAdapter.ThingySe
     }
 
 
-    public class ThingySensorViewHolder extends RecyclerView.ViewHolder {
+    public class ThingySensorViewHolder extends RecyclerView.ViewHolder implements  View.OnClickListener{
+
+        private static final String TAG = "ThingySensorViewHolder";
 
         private SensorItemBinding binding;
+        private TextView itemTextView;
+        private CheckBox itemCheckBox;
+
 
         public ThingySensorViewHolder(@NonNull View itemView) {
             super(itemView);
-
             binding = DataBindingUtil.bind(itemView);
-//            itemView.setOnClickListener(this);
+            itemTextView=binding.itemDeviceSensorName;
+            itemCheckBox=binding.itemDeviceSensorCheckbox;
+            itemView.setOnClickListener(this);
         }
 
         public void setItem(NordicSensor nordicSensor){
-            binding.itemDeviceSensorCheckbox.setChecked(nordicSensor.getState());
-            binding.itemDeviceSensorName.setText(nordicSensor.getName());
+            itemCheckBox.setChecked(nordicSensor.getState());
+            itemTextView.setText(nordicSensor.getName());
+        }
+
+        @Override
+        public void onClick(View v) {
+            if(itemCheckBox.isChecked()){
+                Log.d(TAG, "onClick: "+getAdapterPosition());
+                itemCheckBox.setChecked(false);
+                sensorsListener.onCheckBoxClicked(getAdapterPosition(),false);
+            }
+            else{
+                Log.d(TAG, "onClick: "+getAdapterPosition());
+                itemCheckBox.setChecked(true);
+                sensorsListener.onCheckBoxClicked(getAdapterPosition(),true);
+            }
         }
     }
 }

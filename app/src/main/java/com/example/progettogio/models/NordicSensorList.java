@@ -18,23 +18,30 @@ public class NordicSensorList {
         list.add(2,new NordicSensor("pressure"));
         list.add(3,new NordicSensor("airQuality"));
         list.add(4,new NordicSensor("colorAndLightIntensity"));
-        list.add(5,new NordicSensor("tapDetection"));
-        list.add(6,new NordicSensor("orientation"));
-        list.add(7,new NordicSensor("stepCounter"));
-        list.add(8,new NordicSensor("quaternions"));
-        list.add(9,new NordicSensor("eulerAngles"));
-        list.add(10,new NordicSensor("rotationMatrix"));
-        list.add(11,new NordicSensor("gravityVector"));
-        list.add(12,new NordicSensor("compassHeading"));
-        list.add(13,new NordicSensor("rawAccelGyroCompassData"));
-        list.add(14,new NordicSensor("speaker"));
-        list.add(15,new NordicSensor("microphone"));
+        list.add(5,new NordicSensor("buttonState"));
+        list.add(6,new NordicSensor("tapDetection"));
+        list.add(7,new NordicSensor("orientation"));
+        list.add(8,new NordicSensor("stepCounter"));
+        list.add(9,new NordicSensor("quaternions"));
+        list.add(10,new NordicSensor("eulerAngles"));
+        list.add(11,new NordicSensor("rotationMatrix"));
+        list.add(12,new NordicSensor("gravityVector"));
+        list.add(13,new NordicSensor("compassHeading"));
+        list.add(14,new NordicSensor("rawAccelGyroCompassData"));
+        list.add(15,new NordicSensor("speaker"));
+        list.add(16,new NordicSensor("microphone"));
 
-        list.get(8).setState(true);
+
         list.get(9).setState(true);
-        list.get(11).setState(true);
+        list.get(10).setState(true);
         list.get(12).setState(true);
         list.get(13).setState(true);
+        list.get(14).setState(true);
+//
+//        list.setSensorState(9,true);
+//        list.setSensorState(11,true);
+//        list.setSensorState(12,true);
+//        list.setSensorState(13,true);
 
 
         this.sensorList=list;
@@ -60,17 +67,19 @@ public class NordicSensorList {
         list.add(2,"pressure");
         list.add(3,"airQuality");
         list.add(4,"colorAndLightIntensity");
-        list.add(5,"tapDetection");
-        list.add(6,"orientation");
-        list.add(7,"stepCounter");
-        list.add(8,"quaternions");
-        list.add(9,"eulerAngles");
-        list.add(10,"rotationMatrix");
-        list.add(11,"gravityVector");
-        list.add(12,"compassHeading");
-        list.add(13,"rawAccelGyroCompassData");
-        list.add(14,"speaker");
-        list.add(15,"microphone");
+        list.add(5,"buttonState");
+        list.add(6,"tapDetection");
+        list.add(7,"orientation");
+        list.add(8,"stepCounter");
+        list.add(9,"quaternions");
+        list.add(10,"eulerAngles");
+        list.add(11,"rotationMatrix");
+        list.add(12,"gravityVector");
+        list.add(13,"compassHeading");
+        list.add(14,"rawAccelGyroCompassData");
+        list.add(15,"speaker");
+        list.add(16,"microphone");
+
 
         return list;
     }

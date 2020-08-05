@@ -41,7 +41,7 @@ public class DevicesScanAdapters extends RecyclerView.Adapter<DevicesScanAdapter
 
     @Override
     public void onBindViewHolder(@NonNull NordicScanViewHolder holder, int position) {
-        Log.d(TAG, "onBindViewHolder: creo");
+//        Log.d(TAG, "onBindViewHolder: creo");
         holder.setItem(deviceList.get(position));
     }
 
@@ -80,8 +80,17 @@ public class DevicesScanAdapters extends RecyclerView.Adapter<DevicesScanAdapter
 
         @Override
         public void onClick(View v) {
-            Log.d(TAG, "onClick: ");
-            devsScanListener.onDeviceSelected(deviceList.get(this.getAdapterPosition()).getAddress());
+            //Prova per risolvere problema:java.lang.ArrayIndexOutOfBoundsException: length=10; index=-1
+            //Problema sembra essere così risolto, riscontrato quando si effetua la connessione di più dispositivi molto velocemente
+            if (getAdapterPosition() == RecyclerView.NO_POSITION) {
+                Log.d(TAG, "onClick: getAdapterPosition() == RecyclerView.NO_POSITION");
+                return;
+            }
+            BluetoothDevice d=deviceList.get(this.getAdapterPosition());
+            int position=deviceList.indexOf(d);
+            Log.d(TAG, "onClick:\nadapter position:"+getAdapterPosition()+"\nobject position in devicelist: " +position);
+
+        devsScanListener.onDeviceSelected(deviceList.get(this.getAdapterPosition()).getAddress());
         }
     }
 }
