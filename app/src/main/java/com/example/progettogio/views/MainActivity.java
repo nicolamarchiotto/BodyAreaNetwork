@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -38,6 +39,7 @@ import com.example.progettogio.models.Scanner_BTLE;
 import com.example.progettogio.services.BluetoothConnectionService;
 import com.example.progettogio.services.DataCollectionService;
 import com.example.progettogio.services.ThingyService;
+import com.example.progettogio.sound_vibration.SoundVibrationThread;
 import com.example.progettogio.utils.PermissionUtils;
 
 import java.sql.Timestamp;
@@ -97,6 +99,9 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     private Toolbar toolbar;
 
+    private SoundVibrationThread mSoundVibrationThread;
+    private Button soundVibrationButton;
+    private boolean soundVibrationOn=false;
     /**
      * timestamp of the session, same for every app start
      * session_id: varies for every collection of datas
@@ -200,6 +205,22 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             }
             else
                 mBluetoothConnectionService.closeAcceptThread();
+        });
+
+        soundVibrationButton=activityMainBinding.vibrationButton;
+        soundVibrationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(soundVibrationOn){
+                    mSoundVibrationThread.end();
+                    soundVibrationOn=false;
+                }
+                else {
+                    mSoundVibrationThread = new SoundVibrationThread(getApplicationContext(), true, true, 30);
+                    mSoundVibrationThread.start();
+                    soundVibrationOn=true;
+                }
+            }
         });
 
 

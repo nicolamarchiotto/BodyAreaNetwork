@@ -27,10 +27,10 @@
             android:id="@+id/switch_relative_layout"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:layout_below="@id/app_bar_layout"
-            >
+            android:layout_below="@id/app_bar_layout">
+<!--            android:paddingLeft="16dp"-->
+<!--            android:paddingRight="16dp"-->
+<!--            >-->
 
             <Switch
                 android:id="@+id/collection_switch"
@@ -59,13 +59,18 @@
                 android:id="@+id/scan_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:text="SCAN"
-                android:textSize="15sp"
-                android:visibility="visible"
                 android:layout_gravity="right"
-                android:textColor="@color/black"
                 android:layout_toRightOf="@id/ready_switch"
-                />
+                android:text="SCAN"
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                android:visibility="visible" />
+            <Button
+                android:id="@+id/vibration_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="BPM"
+                android:layout_toRightOf="@id/scan_switch"/>
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/rec_view_container_layout"
