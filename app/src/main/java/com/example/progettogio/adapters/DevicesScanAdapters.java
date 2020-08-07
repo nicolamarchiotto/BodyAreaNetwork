@@ -1,6 +1,7 @@
 package com.example.progettogio.adapters;
 
 import android.bluetooth.BluetoothDevice;
+import android.telephony.mbms.MbmsErrors;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,19 +13,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.example.progettogio.databinding.ThingyItemBinding;
+import com.example.progettogio.models.GeneralDevice;
 
 import java.util.List;
 
 public class DevicesScanAdapters extends RecyclerView.Adapter<DevicesScanAdapters.NordicScanViewHolder>{
 
     private final static String TAG = "DeviceScanAdapters";
-    private List<BluetoothDevice> deviceList;
+    private List<GeneralDevice> deviceList;
 
     private DevsScanListener devsScanListener;
 
 
 
-    public DevicesScanAdapters(List<BluetoothDevice> devices, DevsScanListener listener){
+    public DevicesScanAdapters(List<GeneralDevice> devices, DevsScanListener listener){
         this.deviceList = devices;
         this.devsScanListener = listener;
     }
@@ -70,9 +72,9 @@ public class DevicesScanAdapters extends RecyclerView.Adapter<DevicesScanAdapter
         }
 
 
-        public void setItem(BluetoothDevice device){
+        public void setItem(GeneralDevice device){
 
-            binding.deviceName.setText(device.getName());
+            binding.deviceName.setText(device.getBluetoothDevice().getName());
             binding.deviceAddress.setText(device.getAddress());
 
         }
@@ -86,7 +88,7 @@ public class DevicesScanAdapters extends RecyclerView.Adapter<DevicesScanAdapter
                 Log.d(TAG, "onClick: getAdapterPosition() == RecyclerView.NO_POSITION");
                 return;
             }
-            BluetoothDevice d=deviceList.get(this.getAdapterPosition());
+            GeneralDevice d=deviceList.get(this.getAdapterPosition());
             int position=deviceList.indexOf(d);
             Log.d(TAG, "onClick:\nadapter position:"+getAdapterPosition()+"\nobject position in devicelist: " +position);
 

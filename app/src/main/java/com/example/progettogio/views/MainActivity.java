@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
@@ -34,12 +35,14 @@ import com.example.progettogio.adapters.DevsScanListener;
 import com.example.progettogio.adapters.DevsSelectedListener;
 import com.example.progettogio.databinding.ActivityMainBinding;
 import com.example.progettogio.db.DataMapper;
+import com.example.progettogio.models.GeneralDevice;
 import com.example.progettogio.models.NordicSensorList;
 import com.example.progettogio.models.Scanner_BTLE;
 import com.example.progettogio.services.BluetoothConnectionService;
 import com.example.progettogio.services.DataCollectionService;
 import com.example.progettogio.services.ThingyService;
 import com.example.progettogio.sound_vibration.SoundVibrationThread;
+import com.example.progettogio.utils.DevicesEnum;
 import com.example.progettogio.utils.PermissionUtils;
 
 import java.sql.Timestamp;
@@ -54,6 +57,7 @@ import no.nordicsemi.android.thingylib.Thingy;
 import no.nordicsemi.android.thingylib.ThingyListener;
 import no.nordicsemi.android.thingylib.ThingyListenerHelper;
 import no.nordicsemi.android.thingylib.ThingySdkManager;
+import no.nordicsemi.android.thingylib.utils.ThingyUtils;
 
 public class MainActivity extends AppCompatActivity implements ThingySdkManager.ServiceConnectionListener,
         DevsScanListener,
@@ -75,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     //Scan stuff
     private Scanner_BTLE scannerBLE;
+    private final ParcelUuid thingyParcelUuid=new ParcelUuid(ThingyUtils.THINGY_BASE_UUID);
 
     private BluetoothAdapter bluetoothAdapter=null;
     public static final int REQUEST_BT_ENABLE = 1;
@@ -84,12 +89,12 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private Boolean isCollectingData=false;
 
     //scan devs list
-    private List<BluetoothDevice> scanDevicesList = new ArrayList<>();
+    private List<GeneralDevice> scanDevicesList = new ArrayList<>();
     private RecyclerView scanRecyclerView;
     private DevicesScanAdapters devicesScanAdapters;
 
     //selected devs list
-    private List<BluetoothDevice> selectedDeviceList = new ArrayList<>();
+    private List<GeneralDevice> selectedDeviceList = new ArrayList<>();
     private RecyclerView selectedRecyclerView;
     private DevicesSelectedAdapters devicesSelectedAdapters;
 
@@ -153,7 +158,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         selectedRecyclerView = activityMainBinding.selectedDevRecyclerview;
         selectedRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         devicesSelectedAdapters = new DevicesSelectedAdapters(selectedDeviceList, this);
-        //devicesSelectedAdapters = new DevicesSelectedAdapters(thingySdkManager.getConnectedDevices(), this);
         selectedRecyclerView.setAdapter(devicesSelectedAdapters);
 
         //sensorHashMap
@@ -171,8 +175,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 startScan();
                 Toast.makeText(getApplicationContext(), "BLE scan started.", Toast.LENGTH_SHORT).show();
             }else {
-
                 stopScan();
+                selectedDeviceList.get(0).setBatteryLevel(thingySdkManager.getBatteryLevel(selectedDeviceList.get(0).getBluetoothDevice()));
                 Toast.makeText(getApplicationContext(), "BLE scan stopped.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -191,7 +195,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 }
             }else {
                 stopDataCollection();
-                isCollectingData=false;
                 Toast.makeText(getApplicationContext(), "Data Collection Stopped", Toast.LENGTH_SHORT).show();
             }
         });
@@ -225,6 +228,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
 
         DataMapper.getInstance().setContext(getApplicationContext());
+
     }
 
     @Override
@@ -327,8 +331,17 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 Log.d(TAG, "onBatchScanResults:"+result.getDevice().getAddress()+" trovato");
                 BluetoothDevice device = result.getDevice();
 
-               if (!scanDevicesList.contains(device)){
-                   scanDevicesList.add(device);
+
+                ParcelUuid mUuid=result.getScanRecord().getServiceUuids().get(0);
+                Log.d(TAG, "UUID "+mUuid+" onBatchScanResult: "+result.getDevice().getAddress());
+                if (thingyParcelUuid.equals(mUuid)){
+                    for(GeneralDevice generalDevice:scanDevicesList){
+                        if(generalDevice.getAddress().equals(device.getAddress()))
+                            return;
+                    }
+                    scanDevicesList.add(new GeneralDevice(device, DevicesEnum.NORDIC,0));
+//               if (!scanDevicesList.contains(device)){
+//                   scanDevicesList.add(device);
                }
             }
 
@@ -346,20 +359,24 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         @Override
         public void onDeviceConnected(BluetoothDevice device, int connectionState) {
             Log.d(TAG, "onDeviceConnected: "+device.getAddress()+" connectionState: "+connectionState);
-            scanDevicesList.remove(device);
+
+            thingySdkManager.enableBatteryLevelNotifications(device,true);
+
+            GeneralDevice genDev=new GeneralDevice(device,DevicesEnum.NORDIC,0);
+
             //fatto per impedire molteplici click per lo stesso device
-            if(!selectedDeviceList.contains(device))
-                selectedDeviceList.add(device);
+            if(!selectedDeviceList.contains(genDev))
+                selectedDeviceList.add(genDev);
             else
                 return;
             devicesSelectedAdapters.notifyDataSetChanged();
             devicesScanAdapters.notifyDataSetChanged();
 
-            Toast.makeText(getApplicationContext(), "Connected " + device.getName(), Toast.LENGTH_SHORT).show();
-
-
             sensorHashMap.put(device.getAddress(), new NordicSensorList(device));
             thingySdkManager.setMotionProcessingFrequency(device,5000);
+
+            Toast.makeText(getApplicationContext(), "Connected " + device.getName(), Toast.LENGTH_SHORT).show();
+
 
         }
 
@@ -370,7 +387,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
             sensorHashMap.remove(device.getAddress());
 
-            selectedDeviceList.remove(device);
             devicesSelectedAdapters.notifyDataSetChanged();
         }
 
@@ -381,7 +397,13 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
         @Override
         public void onBatteryLevelChanged(BluetoothDevice bluetoothDevice, int batteryLevel) {
-            
+            Log.d(TAG, "onBatteryLevelChanged: "+bluetoothDevice.getAddress()+" batteryLevel: "+batteryLevel);
+            for(GeneralDevice device:selectedDeviceList){
+                if(device.getAddress().equals(bluetoothDevice.getAddress())){
+                    device.setBatteryLevel(batteryLevel);
+                }
+            }
+            devicesSelectedAdapters.notifyDataSetChanged();
         }
 
         @Override
@@ -496,9 +518,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
      */
     @Override
     public void onDeviceSelected(String address) {
-        for (BluetoothDevice device : scanDevicesList){
-            if (device.getAddress().equals(address)){
-                thingySdkManager.connectToThingy(this, device, ThingyService.class);
+        for (GeneralDevice device : scanDevicesList){
+            if (device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.NORDIC))){
+                scanDevicesList.remove(device);
+                thingySdkManager.connectToThingy(this, device.getBluetoothDevice(), ThingyService.class);
                 break;
             }
         }
@@ -511,15 +534,18 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     @Override
     public void onDevSelectecClick(String address) {
-//        Toast.makeText(getApplicationContext(), "Connected " + address, Toast.LENGTH_SHORT).show();
-        startDetailDialog(sensorHashMap.get(address));
+        for(GeneralDevice device: selectedDeviceList){
+            if(device.getAddress().equals(address) && device.getType().equals(DevicesEnum.NORDIC))
+                startDetailDialog(sensorHashMap.get(address));
+        }
     }
 
     @Override
     public void onDevSelectedLongClick(String address) {
-            for (BluetoothDevice device : selectedDeviceList){
-                if (device.getAddress().equals(address)){
-                    thingySdkManager.disconnectFromThingy(device);
+            for (GeneralDevice device : selectedDeviceList){
+                if (device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.NORDIC))){
+                    thingySdkManager.disconnectFromThingy(device.getBluetoothDevice());
+                    selectedDeviceList.remove(device);
                     Toast.makeText(getApplicationContext(), "Disconnected " + address, Toast.LENGTH_SHORT).show();
                     break;
                 }

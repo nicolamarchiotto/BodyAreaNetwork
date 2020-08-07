@@ -11,16 +11,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.example.progettogio.databinding.ThingyItemBinding;
+import com.example.progettogio.models.GeneralDevice;
 
 import java.util.List;
 
 public class DevicesSelectedAdapters extends RecyclerView.Adapter<DevicesSelectedAdapters.NordicViewHolder> {
 
     private final static String TAG = "DeviesSelectedAdapter";
-    private List<BluetoothDevice> selectedDevies;
+    private List<GeneralDevice> selectedDevies;
     private DevsSelectedListener devsSelectedListener;
 
-    public DevicesSelectedAdapters(List<BluetoothDevice> devices, DevsSelectedListener listener){
+    public DevicesSelectedAdapters(List<GeneralDevice> devices, DevsSelectedListener listener){
         this.selectedDevies = devices;
         this.devsSelectedListener = listener;
     }
@@ -60,10 +61,11 @@ public class DevicesSelectedAdapters extends RecyclerView.Adapter<DevicesSelecte
         }
 
 
-        private void setItem(BluetoothDevice device){
+        private void setItem(GeneralDevice device){
 
-            binding.deviceName.setText(device.getName());
+            binding.deviceName.setText(device.getBluetoothDevice().getName());
             binding.deviceAddress.setText(device.getAddress());
+            binding.deviceBattery.setText(device.getBatteryLevel()+"%");
         }
 
         @Override
