@@ -110,6 +110,11 @@ public class BluetoothConnectionService {
                 //and grabs the mmServerSocket
                 Log.d(TAG, "run: AcceptThread server socket start.....");
 
+                Intent messageToActivityIntent=new Intent("incomingMessage");
+                messageToActivityIntent.putExtra("theMessage","Waiting for Doctor Phone");
+                LocalBroadcastManager.getInstance(mContext).sendBroadcast(messageToActivityIntent);
+
+
                 socket = mmServerSocket.accept();
 
                 Log.d(TAG, "run: AcceptThread server socket accepted connection.");

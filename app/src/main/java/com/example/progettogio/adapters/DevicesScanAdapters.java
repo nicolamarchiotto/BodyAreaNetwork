@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.progettogio.databinding.ThingyItemBinding;
 import com.example.progettogio.models.GeneralDevice;
+import com.example.progettogio.utils.DevicesEnum;
 
 import java.util.List;
 
@@ -47,6 +48,19 @@ public class DevicesScanAdapters extends RecyclerView.Adapter<DevicesScanAdapter
         holder.setItem(deviceList.get(position));
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        //THINGY
+        if (deviceList.get(position).getType()== DevicesEnum.NORDIC)
+            return 1;
+        //WAGOO
+        if (deviceList.get(position).getType()== DevicesEnum.WAGOOGLASSES)
+            return 2;
+        //
+        if (deviceList.get(position).getType()== DevicesEnum.WAGOOGLASSES)
+            return 3;
+        return 0;
+    }
 
     @Override
     public int getItemCount() {
