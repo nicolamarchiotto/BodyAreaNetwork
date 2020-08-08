@@ -81,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private Scanner_BTLE scannerBLE;
     private final ParcelUuid thingyParcelUuid=new ParcelUuid(ThingyUtils.THINGY_BASE_UUID);
 
+//    private final ParcelUuid wagooParcelUuid=;
+
     private BluetoothAdapter bluetoothAdapter=null;
     public static final int REQUEST_BT_ENABLE = 1;
 
@@ -176,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 Toast.makeText(getApplicationContext(), "BLE scan started.", Toast.LENGTH_SHORT).show();
             }else {
                 stopScan();
-                selectedDeviceList.get(0).setBatteryLevel(thingySdkManager.getBatteryLevel(selectedDeviceList.get(0).getBluetoothDevice()));
+//                selectedDeviceList.get(0).setBatteryLevel(thingySdkManager.getBatteryLevel(selectedDeviceList.get(0).getBluetoothDevice()));
                 Toast.makeText(getApplicationContext(), "BLE scan stopped.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -343,15 +345,28 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
                 ParcelUuid mUuid=result.getScanRecord().getServiceUuids().get(0);
                 Log.d(TAG, "UUID "+mUuid+" onBatchScanResult: "+result.getDevice().getAddress());
-                if (thingyParcelUuid.equals(mUuid)){
-                    for(GeneralDevice generalDevice:scanDevicesList){
-                        if(generalDevice.getAddress().equals(device.getAddress()))
-                            return;
+                //controllo per vedere se device non è già presente all'interno delle due liste,
+                //callback ha frequenza molto alta
+
+                for(GeneralDevice generalDevice:selectedDeviceList){
+                    if(generalDevice.getAddress().equals(device.getAddress())){
+                        Log.d(TAG, "onBatchScanResults: ");
+                        return;
                     }
+                }
+                for(GeneralDevice generalDevice:scanDevicesList){
+                    if(generalDevice.getAddress().equals(device.getAddress())){
+                        Log.d(TAG, "onBatchScanResults: ");
+                        return;
+                    }
+                }
+
+                if (thingyParcelUuid.equals(mUuid)){
                     scanDevicesList.add(new GeneralDevice(device, DevicesEnum.NORDIC,0));
-//               if (!scanDevicesList.contains(device)){
-//                   scanDevicesList.add(device);
-               }
+                }
+//                else if(wagooParcelUuid.equals(mUuid)){
+//                    scanDevicesList.add(new GeneralDevice(device, DevicesEnum.WAGOOGLASSES,0));
+//                }
             }
 
             devicesScanAdapters.notifyDataSetChanged();
@@ -371,15 +386,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
             thingySdkManager.enableBatteryLevelNotifications(device,true);
 
-            GeneralDevice genDev=new GeneralDevice(device,DevicesEnum.NORDIC,0);
 
-            //fatto per impedire molteplici click per lo stesso device
-            if(!selectedDeviceList.contains(genDev))
-                selectedDeviceList.add(genDev);
-            else
-                return;
-            devicesSelectedAdapters.notifyDataSetChanged();
             devicesScanAdapters.notifyDataSetChanged();
+            devicesSelectedAdapters.notifyDataSetChanged();
+
 
             sensorHashMap.put(device.getAddress(), new NordicSensorList(device));
             thingySdkManager.setMotionProcessingFrequency(device,5000);
@@ -530,7 +540,13 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         for (GeneralDevice device : scanDevicesList){
             if (device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.NORDIC))){
                 scanDevicesList.remove(device);
+                selectedDeviceList.add(device);
                 thingySdkManager.connectToThingy(this, device.getBluetoothDevice(), ThingyService.class);
+                break;
+            }
+            else if(device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.WAGOOGLASSES))){
+                scanDevicesList.remove(device);
+                Log.d(TAG, "onDeviceSelected: WagooGlasses to connect ");
                 break;
             }
         }
@@ -556,6 +572,11 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                     thingySdkManager.disconnectFromThingy(device.getBluetoothDevice());
                     selectedDeviceList.remove(device);
                     Toast.makeText(getApplicationContext(), "Disconnected " + address, Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                else if(device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.WAGOOGLASSES))){
+                    Log.d(TAG, "onDevSelectedLongClick: to implememnt disconnection of wagooglasses");
+                    selectedDeviceList.remove(device);
                     break;
                 }
             }
