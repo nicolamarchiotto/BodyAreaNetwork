@@ -37,6 +37,7 @@ import com.example.progettogio.databinding.ActivityMainBinding;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.models.GeneralDevice;
 import com.example.progettogio.models.NordicSensorList;
+import com.example.progettogio.models.GeneralDevice;
 import com.example.progettogio.models.Scanner_BTLE;
 import com.example.progettogio.services.BluetoothConnectionService;
 import com.example.progettogio.services.DataCollectionService;
@@ -44,12 +45,16 @@ import com.example.progettogio.services.ThingyService;
 import com.example.progettogio.sound_vibration.SoundVibrationThread;
 import com.example.progettogio.utils.DevicesEnum;
 import com.example.progettogio.utils.PermissionUtils;
+import com.wagoo.wgcom.WagooGlassesInterface;
+import com.wagoo.wgcom.connection.WagooConnectionHandler;
+import com.wagoo.wgcom.connection.WagooDevice;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import kotlin.Unit;
 import no.nordicsemi.android.support.v18.scanner.ScanCallback;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
 import no.nordicsemi.android.thingylib.BaseThingyService;
@@ -100,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private RecyclerView selectedRecyclerView;
     private DevicesSelectedAdapters devicesSelectedAdapters;
 
+    private WagooGlassesInterface wagooGlassesInterface;
+
     //hasmMap of sensorsList of connected nordic devices
 
     private HashMap<String,NordicSensorList> sensorHashMap;
@@ -136,9 +143,68 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         //Nordic SDK
         thingySdkManager = ThingySdkManager.getInstance();
 
+        wagooGlassesInterface = WagooGlassesInterface.Companion.bleAutoInit(
+                getApplicationContext(), new WagooConnectionHandler() {
+
+                    boolean ison = false;
+
+                    @Override
+                    public void onDisconnected(WagooGlassesInterface wagooInterface) {
+                    }
+
+                    @Override
+                    public void onConnecting(WagooGlassesInterface wagooInterface) {
+
+                    }
+
+                    @Override
+                    public void onConnected(WagooGlassesInterface wagooInterface) {
+                        ison = !ison;
+
+                        wagooGlassesInterface.enable_collect_mode();
+
+                        wagooGlassesInterface.set_lights(1.0f, 0, ison, ison, ison);
+
+                    }
+
+                    @Override
+                    public void onDeviceFound(WagooGlassesInterface wagooInterface, WagooDevice device) {
+                    }
+                },
+                null);
+
+
         //get scan
         scannerBLE = Scanner_BTLE.getInstance();
-        
+
+
+        wagooGlassesInterface.register_collect_sensors_callback((accelGyroInfo) -> {
+
+            Log.d("SENSORS", "" + accelGyroInfo.getAccl().getX());
+
+
+            return Unit.INSTANCE;
+        });
+
+        new Thread(() -> {
+
+            try {
+                Thread.sleep(4000);
+
+
+                while (true) {
+                    wagooGlassesInterface.connect();
+                    Thread.sleep(4000);
+                    wagooGlassesInterface.disable_collect_mode();
+                    wagooGlassesInterface.disconnect();
+                    Thread.sleep(4000);
+                }
+            }
+            catch (Exception e) {
+
+            }
+        }).start();
+
         //ask for permission
         PermissionUtils.askForPermissions(this);
 
@@ -160,6 +226,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         selectedRecyclerView = activityMainBinding.selectedDevRecyclerview;
         selectedRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         devicesSelectedAdapters = new DevicesSelectedAdapters(selectedDeviceList, this);
+        //devicesSelectedAdapters = new DevicesSelectedAdapters(thingySdkManager.getConnectedDevices(), this);
         selectedRecyclerView.setAdapter(devicesSelectedAdapters);
 
         //sensorHashMap
@@ -177,8 +244,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 startScan();
                 Toast.makeText(getApplicationContext(), "BLE scan started.", Toast.LENGTH_SHORT).show();
             }else {
+
                 stopScan();
-//                selectedDeviceList.get(0).setBatteryLevel(thingySdkManager.getBatteryLevel(selectedDeviceList.get(0).getBluetoothDevice()));
                 Toast.makeText(getApplicationContext(), "BLE scan stopped.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -194,9 +261,11 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 else{
                     startDataCollection();
                     Toast.makeText(getApplicationContext(), "Data Collection Started", Toast.LENGTH_SHORT).show();
+                    mBluetoothConnectionService=new BluetoothConnectionService(this);
                 }
             }else {
                 stopDataCollection();
+                isCollectingData=false;
                 Toast.makeText(getApplicationContext(), "Data Collection Stopped", Toast.LENGTH_SHORT).show();
             }
         });
@@ -230,7 +299,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
 
         DataMapper.getInstance().setContext(getApplicationContext());
-
     }
 
     @Override
@@ -508,6 +576,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
         @Override
         public void onGravityVectorChangedEvent(BluetoothDevice bluetoothDevice, float x, float y, float z) {
+
         }
 
         @Override
@@ -617,7 +686,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         String value=timestamp+" session:"+session_id;
         Log.d(TAG, "startDataCollection: "+value);
         beaconDiscoveryService.putExtra("SESSION_ID",value);
-        beaconDiscoveryService.putExtra("PHONE_SENSORS_ON",phoneSensorOn);
         session_id+=1;
 
         startForegroundService(beaconDiscoveryService);

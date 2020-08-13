@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Wagoo Glasses Communication Library</string>
+    <string name="title_activity_update">Wagoo Glasses Updater</string>
+    <string name="reboot_prompt">rebooting...</string>
+</resources>
