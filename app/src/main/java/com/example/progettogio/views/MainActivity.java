@@ -205,8 +205,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         readySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Log.d(TAG, "readySwitch listener called: ");
             if(isChecked){
-//                Toast.makeText(this, "Waiting for doctor phone", Toast.LENGTH_SHORT).show();
-                btnEnable_Discoverable();
+                bluetoothEnableDiscoverability();
                 mBluetoothConnectionService=new BluetoothConnectionService(this);
             }
             else
@@ -299,12 +298,14 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         }
     }
 
-    public void btnEnable_Discoverable() {
+    public void bluetoothEnableDiscoverability() {
         Log.d(TAG, "btnEnableDisable_Discoverable: Making device discoverable for 300 seconds.");
 
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
         startActivity(discoverableIntent);
+//        Toast.makeText(this, "Waiting for doctor phone", Toast.LENGTH_SHORT).show();
+
     }
 
 
