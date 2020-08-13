@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -27,7 +26,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import com.example.progettogio.R;
 import com.example.progettogio.adapters.DevicesScanAdapters;
 import com.example.progettogio.adapters.DevicesSelectedAdapters;
@@ -37,7 +35,6 @@ import com.example.progettogio.databinding.ActivityMainBinding;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.models.GeneralDevice;
 import com.example.progettogio.models.NordicSensorList;
-import com.example.progettogio.models.GeneralDevice;
 import com.example.progettogio.models.Scanner_BTLE;
 import com.example.progettogio.services.BluetoothConnectionService;
 import com.example.progettogio.services.DataCollectionService;
@@ -58,7 +55,6 @@ import kotlin.Unit;
 import no.nordicsemi.android.support.v18.scanner.ScanCallback;
 import no.nordicsemi.android.support.v18.scanner.ScanResult;
 import no.nordicsemi.android.thingylib.BaseThingyService;
-import no.nordicsemi.android.thingylib.Thingy;
 import no.nordicsemi.android.thingylib.ThingyListener;
 import no.nordicsemi.android.thingylib.ThingyListenerHelper;
 import no.nordicsemi.android.thingylib.ThingySdkManager;
@@ -146,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         wagooGlassesInterface = WagooGlassesInterface.Companion.bleAutoInit(
                 getApplicationContext(), new WagooConnectionHandler() {
 
+
                     boolean ison = false;
 
                     @Override
@@ -159,16 +156,19 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
                     @Override
                     public void onConnected(WagooGlassesInterface wagooInterface) {
+                        Log.d(TAG, "onConnected: ");
                         ison = !ison;
 
                         wagooGlassesInterface.enable_collect_mode();
 
-                        wagooGlassesInterface.set_lights(1.0f, 0, ison, ison, ison);
+                        wagooGlassesInterface.set_lights(1.0f, 1000, true, true, true);
 
                     }
 
                     @Override
                     public void onDeviceFound(WagooGlassesInterface wagooInterface, WagooDevice device) {
+                        Log.d(TAG, "onDeviceFound: Wagoo Found");
+                        wagooInterface.connect();
                     }
                 },
                 null);
@@ -186,24 +186,24 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             return Unit.INSTANCE;
         });
 
-        new Thread(() -> {
-
-            try {
-                Thread.sleep(4000);
-
-
-                while (true) {
-                    wagooGlassesInterface.connect();
-                    Thread.sleep(4000);
-                    wagooGlassesInterface.disable_collect_mode();
-                    wagooGlassesInterface.disconnect();
-                    Thread.sleep(4000);
-                }
-            }
-            catch (Exception e) {
-
-            }
-        }).start();
+//        new Thread(() -> {
+//
+//            try {
+//                Thread.sleep(4000);
+//
+//
+//                while (true) {
+//                    wagooGlassesInterface.connect();
+//                    Thread.sleep(10000);
+//                    wagooGlassesInterface.disable_collect_mode();
+//                    wagooGlassesInterface.disconnect();
+//                    Thread.sleep(10000);
+//                }
+//            }
+//            catch (Exception e) {
+//
+//            }
+//        }).start();
 
         //ask for permission
         PermissionUtils.askForPermissions(this);
