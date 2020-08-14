@@ -1,7 +1,5 @@
 package com.example.progettogio.adapters;
 
-import android.bluetooth.BluetoothDevice;
-import android.telephony.mbms.MbmsErrors;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +8,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
-
 
 import com.example.progettogio.databinding.ThingyItemBinding;
 import com.example.progettogio.databinding.WagooItemBinding;
@@ -132,7 +129,7 @@ public class DevicesScanAdapters extends RecyclerView.Adapter<RecyclerView.ViewH
             int position=deviceList.indexOf(d);
             Log.d(TAG, "onClick:\nadapter position:"+getAdapterPosition()+"\nobject position in devicelist: " +position);
 
-        devsScanListener.onDeviceSelected(deviceList.get(this.getAdapterPosition()).getAddress());
+        devsScanListener.onScannedDeviceClick(deviceList.get(this.getAdapterPosition()).getAddress());
         }
     }
 
@@ -167,7 +164,7 @@ public class DevicesScanAdapters extends RecyclerView.Adapter<RecyclerView.ViewH
             int position=deviceList.indexOf(d);
             Log.d(TAG, "onClick:\nadapter position:"+getAdapterPosition()+"\nobject position in devicelist: " +position);
 
-            devsScanListener.onDeviceSelected(deviceList.get(this.getAdapterPosition()).getAddress());
+            devsScanListener.onScannedDeviceClick(deviceList.get(this.getAdapterPosition()).getAddress());
         }
     }
 }

@@ -26,7 +26,7 @@ public class PhonePeriodSample implements SensorEventListener {
     private MutableArray phoneMagnetoMutableArray;
 
     private int subsession=0;
-    SubSectionCallback callback;
+    private SubSectionCallback callback;
 
 
     public PhonePeriodSample(SensorManager phoneSensorManager, SubSectionCallback subsessionCallback){

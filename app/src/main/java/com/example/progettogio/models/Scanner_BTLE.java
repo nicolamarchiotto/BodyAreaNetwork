@@ -50,8 +50,11 @@ public class Scanner_BTLE {
 
         //FILTER
         List<ScanFilter> filters = new ArrayList<>();
-        ParcelUuid uuid = new ParcelUuid(ThingyUtils.THINGY_BASE_UUID);
-        filters.add(new ScanFilter.Builder().setServiceUuid(uuid).build());
+        ParcelUuid thingyUuid = new ParcelUuid(ThingyUtils.THINGY_BASE_UUID);
+        filters.add(new ScanFilter.Builder().setServiceUuid(thingyUuid).build());
+
+        ParcelUuid wagooUuid = ParcelUuid.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+        filters.add(new ScanFilter.Builder().setServiceUuid(wagooUuid).build());
 
         //START SCAN
         scanner.startScan(filters, scanSettings, scanCallback);

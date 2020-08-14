@@ -13,22 +13,26 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.couchbase.lite.LogDomain;
 import com.example.progettogio.R;
 import com.example.progettogio.callback.SubSectionCallback;
-import com.example.progettogio.db.AppExecutors;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.models.NordicPeriodSample;
 import com.example.progettogio.models.PhonePeriodSample;
+import com.example.progettogio.models.WagooPeriodSample;
 import com.example.progettogio.views.MainActivity;
+import com.wagoo.wgcom.WagooGlassesInterface;
+import com.wagoo.wgcom.connection.WagooConnectionHandler;
+import com.wagoo.wgcom.connection.WagooDevice;
+import com.wagoo.wgcom.functions.base_functions.AccelGyroInfo;
 
 import java.util.HashMap;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import no.nordicsemi.android.thingylib.BaseThingyService;
 import no.nordicsemi.android.thingylib.ThingyListener;
 import no.nordicsemi.android.thingylib.ThingyListenerHelper;
@@ -50,6 +54,11 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     private HashMap<String,NordicPeriodSample> nordicHashMap;
     private String session_id;
     private Boolean phone_sensors_on;
+
+    private WagooGlassesInterface wagooGlassesInterface;
+    private Boolean wagoo_glasses_connected;
+    private Function1<AccelGyroInfo, Unit> wagooFunctinoCallback;
+    private WagooPeriodSample wagooPeriodSample;
 
 
 
@@ -82,6 +91,36 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
 //            thingySdkManager.setAdvertisingIntervalUnits(device,50000);
         }
+
+        wagooFunctinoCallback=(accelGyroInfo) -> {
+            wagooPeriodSample.addDataEntry(accelGyroInfo.getAccl().getX(),accelGyroInfo.getAccl().getY(),accelGyroInfo.getAccl().getZ(),
+                    accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getRoll(),accelGyroInfo.getTimestamp());
+            return Unit.INSTANCE;
+        };
+
+        wagooGlassesInterface = WagooGlassesInterface.Companion.bleAutoInit(
+                getApplicationContext(), new WagooConnectionHandler() {
+
+                    @Override
+                    public void onDisconnected(WagooGlassesInterface wagooInterface) {
+                        stopCollection();
+                        Log.d(TAG, "onDisconnected: WagooGlassesDisconncted");
+                    }
+
+                    @Override
+                    public void onConnecting(WagooGlassesInterface wagooInterface) {
+                    }
+
+                    @Override
+                    public void onConnected(WagooGlassesInterface wagooInterface) {
+                    }
+
+                    @Override
+                    public void onDeviceFound(WagooGlassesInterface wagooInterface, WagooDevice device) {
+                    }
+                },
+                null);
+
     }
 
 
@@ -89,9 +128,16 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     public int onStartCommand(Intent intent, int flags, int startId) {
         session_id=intent.getStringExtra("SESSION_ID");
         phone_sensors_on=intent.getBooleanExtra("PHONE_SENSORS_ON",false);
-//        Log.d(TAG, "onStartCommand: SESSION_ID: "+session_id);
+        wagoo_glasses_connected=intent.getBooleanExtra("WAGOO_GLASSES_CONNECTED",false);
+
         if(phone_sensors_on)
             phonePeriodSample=new PhonePeriodSample(mPhoneSensorManager,this);
+
+        if(wagoo_glasses_connected){
+            wagooGlassesInterface.register_collect_sensors_callback(wagooFunctinoCallback);
+            wagooPeriodSample=new WagooPeriodSample(this);
+        }
+
         DataMapper.getInstance().setReplicator();
         setNotification("Data collecting", "Running");
         return Service.START_STICKY;
@@ -132,13 +178,18 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     @Override
     public void onDestroy() {
         for(BluetoothDevice device:thingySdkManager.getConnectedDevices()){
-            DataMapper.getInstance().saveNordicPeriodSampleIntoDbLocal(nordicHashMap.get(device.getAddress()),session_id);
             ThingyListenerHelper.unregisterThingyListener(getApplicationContext(),thingyListener);
-            Log.d(TAG, "onDestroy: unregisting listener for nordic: "+device.getAddress());
+            DataMapper.getInstance().saveNordicPeriodSampleIntoDbLocal(nordicHashMap.get(device.getAddress()),session_id);
+//            Log.d(TAG, "onDestroy: unregisting listener for nordic: "+device.getAddress());
         }
         if(phone_sensors_on){
             phonePeriodSample.unRegisterPhoneListeners();
             DataMapper.getInstance().savePhonePeriodSampleIntoDbLocal(phonePeriodSample,session_id);
+        }
+
+        if(wagoo_glasses_connected){
+            wagooGlassesInterface.unregister_collect_sensors_callback(wagooFunctinoCallback);
+            DataMapper.getInstance().saveWagooPeriodSampleIntoDbLocal(wagooPeriodSample,session_id);
         }
         DataMapper.getInstance().startReplication();
         super.onDestroy();
@@ -311,6 +362,10 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
     @Override
     public void doGlassesSubsection() {
-        //to implemet once we get the glasses API
+        Log.d(TAG, "doGlassesSubsection: ");
+        DataMapper.getInstance().saveWagooPeriodSampleIntoDbLocal(wagooPeriodSample,session_id);
+        DataMapper.getInstance().startReplication();
+
     }
+
 }

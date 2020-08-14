@@ -2,7 +2,7 @@ package com.example.progettogio.adapters;
 
 public interface DevsSelectedListener {
 
-    void onDevSelectecClick(String address);
+    void onSelectedDeviceClick(String address);
 
-    void onDevSelectedLongClick(String address);
+    void onSelectedDeviceLongClick(String address);
 }

@@ -1,29 +1,15 @@
 package com.example.progettogio.db;
 
-import android.app.Notification;
-import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
-
-import com.couchbase.lite.AbstractReplicator;
-import com.couchbase.lite.BasicAuthenticator;
-import com.couchbase.lite.ConcurrencyControl;
 import com.couchbase.lite.CouchbaseLite;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseConfiguration;
-import com.couchbase.lite.Document;
 import com.couchbase.lite.DocumentFlag;
 import com.couchbase.lite.Endpoint;
 import com.couchbase.lite.LogDomain;
@@ -32,18 +18,14 @@ import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDocument;
 import com.couchbase.lite.ReplicatedDocument;
 import com.couchbase.lite.Replicator;
-import com.couchbase.lite.ReplicatorChange;
-import com.couchbase.lite.ReplicatorChangeListener;
 import com.couchbase.lite.ReplicatorConfiguration;
 import com.couchbase.lite.URLEndpoint;
-import com.example.progettogio.R;
 import com.example.progettogio.models.NordicPeriodSample;
 import com.example.progettogio.models.PhonePeriodSample;
-import com.example.progettogio.views.MainActivity;
+import com.example.progettogio.models.WagooPeriodSample;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 
 public class DataMapper {
     private static final DataMapper ourInstance = new DataMapper();
@@ -135,6 +117,31 @@ public class DataMapper {
                 }
             }
         });
+    }
+
+    public void saveWagooPeriodSampleIntoDbLocal(WagooPeriodSample wagooPeriodSample,String session_id){
+        String document_id=session_id+"."+wagooPeriodSample.getSubsession()+" - WGlasses";
+        Log.d(TAG, "saveWagooPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
+        MutableDocument doc = new MutableDocument(document_id);
+        doc.setArray("Name", new MutableArray().addString("WagooSmartGlasses"));
+        doc.setArray("wAccelGyroData",wagooPeriodSample.getWagooDataMutableArray());
+
+        mAppExecutors.diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mDatabase.save(doc);
+
+                    Log.d(TAG, "saving wagooPeriodSample into local db: ");
+//                    Document document=mDatabase.getDocument(phonePeriodSample.getId());
+//                    MutableDocument mutableDocument=document.toMutable();
+//                    Log.d(TAG, "saving phonePeriodSample into db: Testing - size of the linearMutableArray: "+mutableDocument.getArray("pAccellerometer").count());
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
     }
 
     public void savePhonePeriodSampleIntoDbLocal(PhonePeriodSample phonePeriodSample,String session_id){
