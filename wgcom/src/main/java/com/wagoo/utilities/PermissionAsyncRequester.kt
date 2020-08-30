@@ -21,6 +21,8 @@ class PermissionAsyncRequester(val activity: Activity) {
                         .any { result -> result == PackageManager.PERMISSION_DENIED }
 
         if(isRequestRequired) {
+            val uid = uid
+            permissionListeners[uid] = continuation
             ActivityCompat.requestPermissions(activity, permissions, uid)
         } else {
             continuation.resume(true) {}

@@ -3,7 +3,6 @@ package com.wagoo.wgcom
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
 import com.wagoo.wgcom.activities.UpdateActivity
@@ -16,7 +15,6 @@ import com.wagoo.wgcom.functions.base_functions.BaseResponseImpl
 import com.wagoo.wgcom.functions.core_functions.CoreRequestImpl
 import com.wagoo.wgcom.functions.core_functions.CoreResponseImpl
 import com.wagoo.wgcom.functions.core_functions.PingMode
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.lang.Exception
@@ -27,9 +25,15 @@ import kotlin.concurrent.thread
 
 private const val REBOOT_CONSTANT = 0x3EB007
 
-data class FirmwareVersion(val major: Int, val minor: Int, val patch: Int)
+data class FirmwareVersion(val major: Int, val minor: Int, val patch: Int) {
+    companion object {
+        fun fromList(version: List<Int>): FirmwareVersion {
+            return FirmwareVersion(version[0], version[1], version[2])
+        }
+    }
+}
 
-class WagooGlassesInterface private constructor(
+class WagooGlassesInterface internal constructor(
         device: WagooDevice?,
         private val connectionHandler: WagooConnectionHandler? = null, _x: Unit) {
 
@@ -116,6 +120,15 @@ class WagooGlassesInterface private constructor(
 
     fun disconnect(): Boolean {
         return connectionManager?.disconnect() != null
+    }
+
+    fun setLogging(enabled: Boolean) {
+        if (enabled) {
+            coreRequest.enable_logging()
+        }
+        else {
+            coreRequest.disable_logging()
+        }
     }
 
     internal fun sendPacketToGlasses(packet: ByteArray) {
@@ -212,13 +225,13 @@ class WagooGlassesInterface private constructor(
 
                 wait_for_chip_version()
 
-                if (firmwareVersion[0]?.equals(version_master) != true) {
+                if (firmwareVersion[0] != FirmwareVersion.fromList(version_master)) {
                     updateMaster = true
                 }
-                if (firmwareVersion[1]?.equals(version_slave) != true) {
+                if (firmwareVersion[1] != FirmwareVersion.fromList(version_slave)) {
                     updateSlave = true
                 }
-                if (firmwareVersion[2]?.equals(version_slave) != true) {
+                if (firmwareVersion[2] != FirmwareVersion.fromList(version_slave)) {
                     updateSlave = true
                 }
 
@@ -249,7 +262,7 @@ class WagooGlassesInterface private constructor(
                 wait_for_chip_version()
 
                 var updateMaster = false
-                if (firmwareVersion[0]?.equals(version_master.toIntArray()) != true) {
+                if (firmwareVersion[0] != FirmwareVersion.fromList(version_master)) {
                     updateMaster = true
                 }
 
@@ -285,10 +298,10 @@ class WagooGlassesInterface private constructor(
                 val version_slave_str = URL("$url/version_slave").readText().trim()
                 val version_slave = version_slave_str.split("_").map { it.toInt() }
 
-                if (firmwareVersion[1]?.equals(version_slave.toIntArray()) != true) {
+                if (firmwareVersion[1] != FirmwareVersion.fromList(version_slave)) {
                     updateSlave = true
                 }
-                if (firmwareVersion[2]?.equals(version_slave.toIntArray()) != true) {
+                if (firmwareVersion[2] != FirmwareVersion.fromList(version_slave)) {
                     updateSlave = true
                 }
 
@@ -465,6 +478,7 @@ class WagooGlassesInterface private constructor(
     private val sensorsCallbacks = WagooHandlerClass<((AccelGyroInfo) -> Unit)>()
     private val beaconsCallbacks = WagooHandlerClass<((BeaconLight) -> Unit)>()
     private val directionCallbacks = WagooHandlerClass<((Int, Int, Int, Float, Long) -> Unit)>()
+    private val doubleTapCallbacks = WagooHandlerClass<((Long) -> Unit)>()
     private val pingCallbacks = WagooHandlerClass<((MutableList<FirmwareVersion?>) -> Unit)>()
 
     internal fun on_sensors_data(data: AccelGyroInfo) {
@@ -477,6 +491,10 @@ class WagooGlassesInterface private constructor(
 
     internal fun on_direction_data(wid: Int, direction: Int, progress: Int, findex: Float, ms_since_last: Long) {
         directionCallbacks.execute { it.invoke(wid, direction, progress, findex, ms_since_last) }
+    }
+
+    internal fun on_double_tap(timestamp_us: Long) {
+        doubleTapCallbacks.execute { it.invoke(timestamp_us) }
     }
 
     internal fun on_ping_update() {
@@ -498,6 +516,10 @@ class WagooGlassesInterface private constructor(
 
     fun register_direction_update_callback(callback: (Int, Int, Int, Float, Long) -> Unit) {
         directionCallbacks.add(callback)
+    }
+
+    fun register_double_tap_callback(callback: (Long) -> Unit) {
+        doubleTapCallbacks.add(callback)
     }
 
     fun register_ping_callback(callback: (MutableList<FirmwareVersion?>) -> Unit) {
