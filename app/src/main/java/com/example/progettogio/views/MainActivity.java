@@ -167,13 +167,12 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
             try {
                 Thread.sleep(4000);
-
+                wagooGlassesInterface.connect();
 
                 while (true) {
-                    wagooGlassesInterface.connect();
                     Thread.sleep(4000);
                     wagooGlassesInterface.disable_collect_mode();
-                    wagooGlassesInterface.disconnect();
+//                    wagooGlassesInterface.disconnect();
                     Thread.sleep(4000);
                 }
             }

@@ -107,6 +107,7 @@ internal abstract class KotlinReceiverBaseFunctions : MainRustInterop.Receiver()
     abstract fun collect_sensors_send(data: AccelGyroInfo)
     abstract fun collect_beacon_send(data: BeaconLight)
     abstract fun beacon_send_direction(wid: Byte, dir: Byte, accuracy: Byte, findex: Float, elapsed_us_since_last: Long)
+    abstract fun notify_double_tap(timestamp_us: Long)
 }
 internal abstract class KotlinSenderBaseFunctions : MainRustInterop.Sender() {
 
