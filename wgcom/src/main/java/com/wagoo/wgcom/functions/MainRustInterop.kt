@@ -1,7 +1,7 @@
 @file:Suppress("JniMissingFunction")
 package com.wagoo.wgcom.functions
 
-internal class MainRustInterop(private val sendCallback: ((ByteArray) -> Unit)) {
+class MainRustInterop(private val sendCallback: ((ByteArray) -> Unit)) {
 
     private external fun nativeInit()
 

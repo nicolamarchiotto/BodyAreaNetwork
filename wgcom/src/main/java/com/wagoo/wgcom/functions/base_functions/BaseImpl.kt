@@ -15,6 +15,10 @@ internal class BaseResponseImpl(private val wagooInterface: WagooGlassesInterfac
     override fun beacon_send_direction(wid: Byte, dir: Byte, accuracy: Byte, findex: Float, elapsed_us_since_last: Long) {
         wagooInterface.on_direction_data(wid.toInt(), dir.toInt(), accuracy.toInt(), findex, elapsed_us_since_last / 1000)
     }
+
+    override fun notify_double_tap(timestamp_us: Long) {
+        wagooInterface.on_double_tap(timestamp_us)
+    }
 }
 
 internal class BaseRequestImpl(private val wagooInterface: WagooGlassesInterface) : KotlinSenderBaseFunctions()

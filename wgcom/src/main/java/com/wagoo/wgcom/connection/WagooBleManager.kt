@@ -4,14 +4,14 @@ import android.bluetooth.*
 import android.content.Context
 import android.os.Looper
 import android.util.Log
-import com.beepiz.bluetooth.gattcoroutines.GattConnection
-import com.beepiz.bluetooth.gattcoroutines.OperationFailedException
+import com.beepiz.bluetooth.gattcoroutines.*
 import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.scan.ScanSettings
 import com.wagoo.wgcom.UuidUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.sendBlocking
 import java.lang.Exception
 import java.util.*
@@ -37,10 +37,23 @@ private val NORDIC_UART_RX = UUID.fromString("6E400002-B5A3-F393-E0A9-E50E24DCCA
 private val NORDIC_UART_TX = UUID.fromString("6E400003-B5A3-F393-E0A9-E50E24DCCA9E")
 private val CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
+internal interface WagooBleCallbackDebug {
+    fun onConnection()
+    fun onMtuSet()
+    fun onServiceDiscovered()
+    fun onNordicServiceFound()
+    fun onReadCharacteristicFound()
+    fun onWriteCharacteristicFound()
+    fun onConnectionComplete()
+    fun onDisconnection()
+}
+
+
 internal class WagooBleManager(val context: Context,
                                device: BluetoothDevice,
                                packetsBufferSize: Int,
-                               private val deviceTransport: WagooTransport) : ConnectionManager(device) {
+                               private val deviceTransport: WagooTransport,
+                               internal var debug: WagooBleCallbackDebug? = null) : ConnectionManager(device) {
 
     val sendQueue: Channel<ByteArray> = Channel(packetsBufferSize)
     var writeCharacteristic: BluetoothGattCharacteristic? = null
@@ -48,80 +61,157 @@ internal class WagooBleManager(val context: Context,
 
     private var currentMtu  = 32
 
-    var bleConnection = GattConnection(device, GattConnection.ConnectionSettings(
-            true,
-            allowAutoConnect = true,
-            disconnectOnClose = true,
-            transport = BluetoothDevice.TRANSPORT_LE
-    ))
-
     val coroutineScope = CoroutineScope(Dispatchers.IO)
     var bleCoroutine: Job? = null
 
     override fun connect(reconnect: Boolean) {
 
-        if (bleCoroutine?.isActive == true) return
+        if (!reconnect && bleCoroutine?.isActive == true) return
+
+        val lastCoroutine = bleCoroutine
 
         bleCoroutine = coroutineScope.launch {
 
-            while (isActive) {
+            val handler = CoroutineExceptionHandler { _, exception ->
+                println("CoroutineExceptionHandler got $exception")
+            }
+
+            withTimeout(1500) {
+                lastCoroutine?.join()
+            }
+            status = BLEStatus.DISCONNECTED
+
+            val bleConnection = GattConnection(device!!, GattConnection.ConnectionSettings(
+                    true,
+                    allowAutoConnect = true,
+                    disconnectOnClose = true,
+                    transport = BluetoothDevice.TRANSPORT_LE
+            ))
+
+            var recvCoroutine: Job? = null
+            try {
 
                 status = BLEStatus.CONNECTING
 
-                bleConnection.connect()
-
-//                try {
-//                    currentMtu = bleConnection.requestMtu(232)
-//                }
-//                catch (ex: OperationFailedException) {
-//                    Log.e("WAGOO_BLE", "Mtu set failed!")
-//                }
+                try {
+                    withTimeout(5000) {
+                        bleConnection.connect()
+                        debug?.onConnection()
+                    }
+                } catch (ex: Exception) {
+                    Log.e("WAGOO_BLE", "Cannot connect to glasses!")
+                    ex.printStackTrace()
+                    return@launch
+                }
 
                 try {
+                    withTimeout(3000) {
+                        currentMtu = bleConnection.requestMtu(232)
+                        debug?.onMtuSet()
+                    }
+                } catch (ex: OperationFailedException) {
+                    Log.e("WAGOO_BLE", "Mtu set failed!")
+                    if (!isActive) return@launch
+                }
 
-                    for (service in bleConnection.discoverServices()) {
-                        if (service.uuid == NORDIC_UART_SERVICE) {
-                            readCharacteristic = service.getCharacteristic(NORDIC_UART_TX)
-                            writeCharacteristic = service.getCharacteristic(NORDIC_UART_RX)
-                            break
-                        } else if (service.uuid == QCC_SERVICE_UUID) {
-                            readCharacteristic = service.getCharacteristic(QCC_CHARACTERISTIC_NOTIFY)
-                            writeCharacteristic = service.getCharacteristic(QCC_CHARACTERISTIC_WRITE)
-                            break
+                try {
+                    withTimeoutOrNull(5000) {
+
+                        val services = bleConnection.discoverServices()
+                        debug?.onServiceDiscovered()
+
+                        for (service in services) {
+                            if (service.uuid == NORDIC_UART_SERVICE) {
+
+                                debug?.onNordicServiceFound()
+
+                                readCharacteristic = service.getCharacteristic(NORDIC_UART_TX)
+                                debug?.onWriteCharacteristicFound()
+
+                                writeCharacteristic = service.getCharacteristic(NORDIC_UART_RX)
+                                debug?.onReadCharacteristicFound()
+
+                                break
+                            } else if (service.uuid == QCC_SERVICE_UUID) {
+                                readCharacteristic = service.getCharacteristic(QCC_CHARACTERISTIC_NOTIFY)
+                                writeCharacteristic = service.getCharacteristic(QCC_CHARACTERISTIC_WRITE)
+                                break
+                            }
                         }
                     }
 
                     readCharacteristic?.let {
                         bleConnection.setCharacteristicNotificationsEnabledOnRemoteDevice(it, true)
-                        launch {
-                            for (notification in bleConnection.openNotificationSubscription(it)) {
-                                onReceiveData(notification.value)
+                        recvCoroutine = coroutineScope.launch {
+                            var subscriber: ReceiveChannel<BGC>? = null
+                            try {
+                                subscriber = bleConnection.openNotificationSubscription(it)
+                                for (notification in subscriber) {
+                                    onReceiveData(notification.value)
+                                }
+                            }
+                            catch (_: ConnectionClosedException) { }
+                            catch (_: OperationInitiationFailedException) { }
+                            finally {
+                                subscriber?.cancel()
                             }
                         }
                     }
 
                     status = BLEStatus.CONNECTED_NORDIC
+                    debug?.onConnectionComplete()
+
 
                     writeCharacteristic?.let {
-
                         while (true) {
                             val buffer = sendQueue.receive()
                             it.value = buffer
-                            bleConnection.writeCharacteristic(it)
+                            withTimeoutOrNull(5000) {
+                                try {
+                                    bleConnection.writeCharacteristic(it)
+                                }catch (_: CancellationException) {
+                                    return@withTimeoutOrNull null
+                                }
+                                return@withTimeoutOrNull Unit
+                            } ?: break
                         }
                     }
                 } catch (ex: Exception) {
                     ex.printStackTrace()
-                    delay(1000)
                 }
+            }
+            finally {
+                val isActive = isActive
+                coroutineScope.launch {
+                    try {
+                        recvCoroutine?.cancel()
+                        recvCoroutine?.join()
+                    } finally {
+                        delay(500)
+                        bleConnection.close(false)
+
+                        if (isActive) {
+                            connect(true)
+                            this.cancel()
+                        }
+                    }
+                }.join()
             }
         }
     }
 
     override fun disconnect() {
         if (isConnected() || isConnecting()) {
-            status = BLEStatus.DISCONNECTED
-//            bleConnection?.tri
+
+            coroutineScope.launch {
+                try {
+                    bleCoroutine?.cancel()
+                    status = BLEStatus.DISCONNECTED
+                }
+                catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            }
         }
     }
 
