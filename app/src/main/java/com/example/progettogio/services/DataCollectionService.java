@@ -25,8 +25,6 @@ import com.example.progettogio.models.PhonePeriodSample;
 import com.example.progettogio.models.WagooPeriodSample;
 import com.example.progettogio.views.MainActivity;
 import com.wagoo.wgcom.WagooGlassesInterface;
-import com.wagoo.wgcom.connection.WagooConnectionHandler;
-import com.wagoo.wgcom.connection.WagooDevice;
 import com.wagoo.wgcom.functions.base_functions.AccelGyroInfo;
 
 import java.util.HashMap;
@@ -55,9 +53,9 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     private String session_id;
     private Boolean phone_sensors_on;
 
-    private WagooGlassesInterface wagooGlassesInterface;
+    private WagooGlassesInterface mWagooGlassesInterface;
     private Boolean wagoo_glasses_connected;
-    private Function1<AccelGyroInfo, Unit> wagooFunctinoCallback;
+    private Function1<AccelGyroInfo, Unit> wagooFunctionCallback;
     private WagooPeriodSample wagooPeriodSample;
 
 
@@ -92,35 +90,15 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 //            thingySdkManager.setAdvertisingIntervalUnits(device,50000);
         }
 
-        wagooFunctinoCallback=(accelGyroInfo) -> {
+        wagooFunctionCallback=(accelGyroInfo) -> {
             wagooPeriodSample.addDataEntry(accelGyroInfo.getAccl().getX(),accelGyroInfo.getAccl().getY(),accelGyroInfo.getAccl().getZ(),
                     accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getRoll(),accelGyroInfo.getTimestamp());
+
+            Log.d(TAG, "wagooFunctionCallback: called");
             return Unit.INSTANCE;
         };
 
-        wagooGlassesInterface = WagooGlassesInterface.Companion.bleAutoInit(
-                getApplicationContext(), new WagooConnectionHandler() {
-
-                    @Override
-                    public void onDisconnected(WagooGlassesInterface wagooInterface) {
-                        stopCollection();
-                        Log.d(TAG, "onDisconnected: WagooGlassesDisconncted");
-                    }
-
-                    @Override
-                    public void onConnecting(WagooGlassesInterface wagooInterface) {
-                    }
-
-                    @Override
-                    public void onConnected(WagooGlassesInterface wagooInterface) {
-                    }
-
-                    @Override
-                    public void onDeviceFound(WagooGlassesInterface wagooInterface, WagooDevice device) {
-                    }
-                },
-                null);
-
+        mWagooGlassesInterface=MainActivity.getWagooGlassesInterface();
     }
 
 
@@ -134,7 +112,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
             phonePeriodSample=new PhonePeriodSample(mPhoneSensorManager,this);
 
         if(wagoo_glasses_connected){
-            wagooGlassesInterface.register_collect_sensors_callback(wagooFunctinoCallback);
+            mWagooGlassesInterface.register_collect_sensors_callback(wagooFunctionCallback);
             wagooPeriodSample=new WagooPeriodSample(this);
         }
 
@@ -188,7 +166,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         }
 
         if(wagoo_glasses_connected){
-            wagooGlassesInterface.unregister_collect_sensors_callback(wagooFunctinoCallback);
+            mWagooGlassesInterface.unregister_collect_sensors_callback(wagooFunctionCallback);
             DataMapper.getInstance().saveWagooPeriodSampleIntoDbLocal(wagooPeriodSample,session_id);
         }
         DataMapper.getInstance().startReplication();

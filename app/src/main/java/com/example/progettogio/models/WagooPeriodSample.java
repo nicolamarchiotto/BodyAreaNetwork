@@ -39,9 +39,10 @@ public class WagooPeriodSample {
     }
 
     private void wagooGlassescheckSize() {
-        if(wagooDataMutableArray.count()>500)
-           subSectionCallback.doGlassesSubsection();
+        if(wagooDataMutableArray.count()>500){
+            subSectionCallback.doGlassesSubsection();
             subsession+=1;
+        }
     }
 
 

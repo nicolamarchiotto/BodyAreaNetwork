@@ -70,12 +70,12 @@ internal class WagooBleManager(val context: Context,
 
                 bleConnection.connect()
 
-                try {
-                    currentMtu = bleConnection.requestMtu(232)
-                }
-                catch (ex: OperationFailedException) {
-                    Log.e("WAGOO_BLE", "Mtu set failed!")
-                }
+//                try {
+//                    currentMtu = bleConnection.requestMtu(232)
+//                }
+//                catch (ex: OperationFailedException) {
+//                    Log.e("WAGOO_BLE", "Mtu set failed!")
+//                }
 
                 try {
 
