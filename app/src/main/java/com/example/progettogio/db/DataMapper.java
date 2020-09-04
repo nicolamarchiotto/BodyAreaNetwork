@@ -63,7 +63,6 @@ public class DataMapper {
         if (mDatabase == null) {
             try {
                 mDatabase = new Database("myDB", config);
-
                 mAppExecutors=new AppExecutors();
                 Log.d(TAG, "setContext: Database Created");
             } catch (CouchbaseLiteException e) {
@@ -212,7 +211,18 @@ public class DataMapper {
         //controllo quali dati il replicator sta caricando su db remoto.
         replicator.addDocumentReplicationListener(replication -> {
             for (ReplicatedDocument document : replication.getDocuments()) {
-                Toast.makeText(mContext, "Uploading "+ document.getID()+" to database", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "Uploaded "+ document.getID()+" to database", Toast.LENGTH_SHORT).show();
+                try {
+                    Log.d(TAG, "Purging document "+document.getID());
+                    mDatabase.purge(document.getID());
+                    if(mDatabase.getDocument(document.getID())==null){
+                        //same as to check if(document.flags().contains(DocumentFlag.DocumentFlagsDeleted)
+                        Log.d(TAG, "Document still in db: "+document.getID());
+                    }
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+
                 CouchbaseLiteException err = document.getError();
                 if (err != null) {
                     // There was an error
@@ -223,7 +233,6 @@ public class DataMapper {
                     Log.i(TAG, "Successfully replicated a deleted document");
                 }
             }
-
         });
     }
 
