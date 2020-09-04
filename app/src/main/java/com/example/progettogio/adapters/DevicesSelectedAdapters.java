@@ -102,7 +102,7 @@ public class DevicesSelectedAdapters extends  RecyclerView.Adapter<RecyclerView.
 
             binding.deviceName.setText(device.getBluetoothDevice().getName());
             binding.deviceAddress.setText(device.getAddress());
-            binding.deviceBattery.setText(device.getBatteryLevel()+"%");
+//            binding.deviceBattery.setText(device.getBatteryLevel()+"%");
         }
 
         @Override

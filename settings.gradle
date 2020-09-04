@@ -1,4 +1,4 @@
-include ':wear'
+include ':thingyserverwear'
 include ':thingylib'
 include ':app'
 include ':wgcom'

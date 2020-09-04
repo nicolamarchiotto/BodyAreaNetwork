@@ -23,11 +23,11 @@ public class PermissionUtils {
             permissionsToAsk.add(Manifest.permission.ACCESS_FINE_LOCATION);
         }
 
-        if (ContextCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED) {
-            // Ask for permission
-            permissionsToAsk.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
-        }
+//        if (ContextCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION) !=
+//                PackageManager.PERMISSION_GRANTED) {
+//            // Ask for permission
+//            permissionsToAsk.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+//        }
 
         if (ContextCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) !=
                 PackageManager.PERMISSION_GRANTED) {

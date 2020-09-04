@@ -24,15 +24,6 @@
             android:src="@drawable/ic_thingy_gray"
             tools:ignore="contentDescription" />
 
-        <ImageView
-            android:id="@+id/rssi"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_rssi_bar"
-            tools:ignore="contentDescription" />
-
         <TextView
             android:id="@+id/device_name"
             android:layout_width="130dp"
@@ -57,49 +48,6 @@
             android:textColor="#000000"
             android:textSize="14sp"
             tools:text="AA:BB:CC:DD:EE:FF" />
-
-
-        <TextView
-            android:id="@+id/title_frequency"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="40dp"
-            android:layout_toRightOf="@id/device_name"
-            android:text="Frequency:"
-            android:textColor="#000000"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/device_frequency"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="3dp"
-            android:layout_toRightOf="@id/title_frequency"
-            android:text="0 Hz"
-            android:textColor="#000000"
-            android:textSize="12sp" />
-
-
-        <TextView
-            android:id="@+id/title_battery"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/title_frequency"
-            android:layout_alignLeft="@id/title_frequency"
-            android:text="Battery:"
-            android:textColor="#000000"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/device_battery"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/device_frequency"
-            android:layout_marginLeft="3dp"
-            android:layout_toRightOf="@id/title_battery"
-            android:text="0%"
-            android:textColor="#000000"
-            android:textSize="12sp" />
 
     </RelativeLayout>
 
