@@ -1,4 +1,4 @@
-package com.example.progettogio.callback;
+package com.example.progettogio.interfaces;
 
 public interface SubSectionCallback {
 

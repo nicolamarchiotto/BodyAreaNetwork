@@ -8,7 +8,7 @@ import android.util.Log;
 
 import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDictionary;
-import com.example.progettogio.callback.SubSectionCallback;
+import com.example.progettogio.interfaces.SubSectionCallback;
 
 public class PhonePeriodSample implements SensorEventListener {
 

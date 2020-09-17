@@ -10,21 +10,24 @@ public class GeneralDevice {
     private BluetoothDevice bluetoothDevice;
     private DevicesEnum type;
     private int batteryLevel;
+    private String deviceName;
 
     @Override
     public boolean equals(@Nullable Object obj) {
         return ((GeneralDevice) this).bluetoothDevice.getAddress().equals(((GeneralDevice) obj).getAddress());
     }
 
-    public GeneralDevice(BluetoothDevice bluetoothDevice, DevicesEnum type, int batteryLevel) {
+    public GeneralDevice(BluetoothDevice bluetoothDevice, DevicesEnum type, int batteryLevel,String deviceName) {
         this.bluetoothDevice = bluetoothDevice;
         this.type = type;
         this.batteryLevel = batteryLevel;
+        this.deviceName=deviceName;
     }
 
     public void setBluetoothDevice(BluetoothDevice bluetoothDevice) {
         this.bluetoothDevice = bluetoothDevice;
     }
+
 
     public void setType(DevicesEnum type) {
         this.type = type;
@@ -48,5 +51,13 @@ public class GeneralDevice {
 
     public String getAddress(){
         return bluetoothDevice.getAddress();
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
     }
 }

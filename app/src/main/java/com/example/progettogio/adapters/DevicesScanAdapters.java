@@ -111,7 +111,7 @@ public class DevicesScanAdapters extends RecyclerView.Adapter<RecyclerView.ViewH
 
         public void setItem(GeneralDevice device){
 
-            binding.deviceName.setText(device.getBluetoothDevice().getName());
+            binding.deviceName.setText(device.getDeviceName());
             binding.deviceAddress.setText(device.getAddress());
 
         }

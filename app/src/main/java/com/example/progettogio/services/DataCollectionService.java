@@ -18,7 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.example.progettogio.R;
-import com.example.progettogio.callback.SubSectionCallback;
+import com.example.progettogio.interfaces.SubSectionCallback;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.models.NordicPeriodSample;
 import com.example.progettogio.models.PhonePeriodSample;
@@ -45,6 +45,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     private BluetoothGatt mBluetoothGatt;
     private ThingySdkManager thingySdkManager;
     private BaseThingyService.BaseThingyBinder mBinder;
+    private int nordicNumber;
 
     private SensorManager mPhoneSensorManager;
     private PhonePeriodSample phonePeriodSample;
@@ -57,6 +58,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     private Boolean wagoo_glasses_connected;
     private Function1<AccelGyroInfo, Unit> wagooFunctionCallback;
     private WagooPeriodSample wagooPeriodSample;
+
 
 
 
@@ -76,17 +78,18 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
         mPhoneSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
         nordicHashMap=new HashMap<>();
+        nordicNumber=0;
 
 
 
         for(BluetoothDevice device : thingySdkManager.getConnectedDevices()) {
             Log.d(TAG, "startCollection: connettendo il device "+device.getAddress()+" al listener in DataCollectorService");
             ThingyListenerHelper.registerThingyListener(getApplicationContext(),thingyListener,device);
-            nordicHashMap.put(device.getAddress(),new NordicPeriodSample(device.getName(),device.getAddress(),this));
+            nordicHashMap.put(device.getAddress(),new NordicPeriodSample("N"+nordicNumber+"-"+device.getName(),device.getAddress(), this));
+            nordicNumber+=1;
 //            thingySdkManager.enableEnvironmentNotifications(device,true);
 //            thingySdkManager.enableMotionNotifications(device,true);
 //            thingySdkManager.setMotionProcessingFrequency(device,500000000);
-
 //            thingySdkManager.setAdvertisingIntervalUnits(device,50000);
         }
 

@@ -17,11 +17,13 @@ public class SoundVibrationThread extends Thread {
         this.mBpm = bpm;
         this.mContext = context;
         this.mMetronome = new Metronome(mContext);
-        this.mMetronome.setBpm(mBpm);
+//        mMetronome.setBpm(bpm);
+
     }
 
 
     public void run() {
+        mMetronome.setBpm(mBpm);
         mMetronome.play();
     }
 
@@ -33,6 +35,14 @@ public class SoundVibrationThread extends Thread {
         this.mBpm=bpm;
         mMetronome.setBpm(bpm);
     }
+
+//    public void riprendi(int bpm){
+//        mMetronome.setBpm(bpm);
+//        mMetronome.play();
+//    }
+//    public void pausa(){
+//        mMetronome.stop();
+//    }
 }
 
 

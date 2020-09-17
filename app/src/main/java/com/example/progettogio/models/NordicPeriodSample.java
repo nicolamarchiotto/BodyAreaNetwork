@@ -1,13 +1,10 @@
 package com.example.progettogio.models;
 
-import android.nfc.tech.MifareUltralight;
 import android.util.Log;
 
 import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDictionary;
-import com.example.progettogio.callback.SubSectionCallback;
-
-import java.util.ArrayList;
+import com.example.progettogio.interfaces.SubSectionCallback;
 
 /**
  * Oggetto che contiene le liste di ogni sensore, contenente i dati della registrazione.
@@ -392,7 +389,7 @@ public class NordicPeriodSample {
 
         Log.d(TAG, "checksize: size: "+size);
 
-        if (size>500) {
+        if (size>5000) {
             Log.d(TAG, "checksize: ");
             callback.doNordicSubsection(nordicAddress);
             nextSubsession();
