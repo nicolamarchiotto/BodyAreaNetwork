@@ -18,6 +18,7 @@ import java.util.Set;
 
 public class MainActivity extends WearableActivity {
 
+    private static final String TAG = "MainActivity";
     private TextView mTextView;
     private Set<Node> nodes;
     private String text = "Paired with:\n";
@@ -73,7 +74,9 @@ public class MainActivity extends WearableActivity {
             //not used
             text="Paired with:\n";
             mTextView.setText(text);
-        } else{
+        } else if (message.equals("PING")){
+            Log.d(TAG, "ping: ");
+        }else{
             if (mWakeLock != null)
                 mWakeLock.acquire(5 * 60 * 1000);
             int bpm = Integer.parseInt(message);

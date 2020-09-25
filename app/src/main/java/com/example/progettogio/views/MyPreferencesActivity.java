@@ -1,6 +1,5 @@
 package com.example.progettogio.views;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -18,13 +17,6 @@ public class MyPreferencesActivity extends PreferenceActivity{
         getFragmentManager().beginTransaction().replace(android.R.id.content, new MyPreferenceFragment()).commit();
 
         setResult(RESULT_OK);
-    }
-
-
-    private void setSmartPhoneSearch(boolean smartwatch) {
-        Intent data=new Intent();
-        data.putExtra("SMARTWATCH_SEARCH",smartwatch);
-        setResult(RESULT_OK,data);
     }
 
 

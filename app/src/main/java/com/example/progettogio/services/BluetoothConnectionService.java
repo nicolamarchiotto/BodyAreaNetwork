@@ -264,7 +264,7 @@ public class BluetoothConnectionService {
 
             // Keep listening to the InputStream until an exception occurs
             Intent messageIntent=new Intent("incomingMessage");
-            messageIntent.putExtra("theMessage","connectedThreadReady");
+            messageIntent.putExtra("theMessage","connectedThreadCommunication_connectedThreadReady");
             LocalBroadcastManager.getInstance(mContext).sendBroadcast(messageIntent);
 
             while (true) {
@@ -273,6 +273,8 @@ public class BluetoothConnectionService {
                     bytes = mmInStream.read(buffer);
                     String incomingMessage = new String(buffer, 0, bytes);
                     Log.d(TAG, "InputStream: " + incomingMessage);
+
+                    incomingMessage="connectedThreadCommunication_"+incomingMessage;
 
                     Intent incomingMessageIntent=new Intent("incomingMessage");
                     incomingMessageIntent.putExtra("theMessage",incomingMessage);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <PreferenceCategory>
 
         <EditTextPreference
@@ -34,6 +35,13 @@
             android:singleLine="true"
             android:summary="Your db password - Optional"
             android:title="Password" />
+        <EditTextPreference
+            android:key="motion_frequency_thingy"
+            android:title="Thingy motion frequency"
+            android:summary="Sampling frequency of Thingy:52 devices"
+            android:inputType="number"
+            android:defaultValue="25"
+            android:icon="@drawable/ic_thingy_gray" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="phone_sensors"

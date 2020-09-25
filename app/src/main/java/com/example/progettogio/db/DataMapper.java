@@ -21,11 +21,13 @@ import com.couchbase.lite.Replicator;
 import com.couchbase.lite.ReplicatorConfiguration;
 import com.couchbase.lite.URLEndpoint;
 import com.example.progettogio.models.NordicPeriodSample;
+import com.example.progettogio.models.NordicPeriodSample2;
 import com.example.progettogio.models.PhonePeriodSample;
 import com.example.progettogio.models.WagooPeriodSample;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 
 public class DataMapper {
     private static final DataMapper ourInstance = new DataMapper();
@@ -79,25 +81,13 @@ public class DataMapper {
         Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument newDoc = new MutableDocument(document_id);
         newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample.getNordicAddress()));
-        newDoc.setArray("tTemperature",nordicPeriodSample.getThingyTemperatureMutableArray())
-                .setArray("tPressure", nordicPeriodSample.getThingyPressureMutableArray())
-                .setArray("tHumidity", nordicPeriodSample.getThingyHumidityMutableArray())
-                .setArray("tAirQuality", nordicPeriodSample.getThingyAirQualityMutableArray())
-                .setArray("tColorIntensity", nordicPeriodSample.getThingyColorIntensityMutableArray())
-                .setArray("tButtonState",nordicPeriodSample.getThingyButtonStateMutableArray())
-                .setArray("tTap", nordicPeriodSample.getThingyTapMutableArray())
-                .setArray("tOrientation", nordicPeriodSample.getThingyOrientationMutableArray())
-                .setArray("tQuaternion", nordicPeriodSample.getThingyQuaternionMutableArray())
-                .setArray("tPedometer", nordicPeriodSample.getThingyPedometerMutableArray())
+        newDoc.setArray("tQuaternion", nordicPeriodSample.getThingyQuaternionMutableArray())
                 .setArray("tAccellerometer", nordicPeriodSample.getThingyAccelerometerMutableArray())
                 .setArray("tGyroscope", nordicPeriodSample.getThingyGyroscopeMutableArray())
                 .setArray("tCompass", nordicPeriodSample.getThingyCompassMutableArray())
                 .setArray("tEulerAngle", nordicPeriodSample.getThingyEulerAngleMutableArray())
-                .setArray("tRotationMatrix", nordicPeriodSample.getThingyRotationMatrixMutableArray())
                 .setArray("tHeading", nordicPeriodSample.getThingyHeadingMutableArray())
-                .setArray("tGravityVector", nordicPeriodSample.getThingyGravityVectorMutableArray())
-                .setArray("tSpeaker", nordicPeriodSample.getThingySpeakerMutableArray())
-                .setArray("tMicrophone", nordicPeriodSample.getThingyMicrophoneMutableArray());
+                .setArray("tGravityVector", nordicPeriodSample.getThingyGravityVectorMutableArray());
 
 
 
@@ -108,6 +98,64 @@ public class DataMapper {
                       mDatabase.save(newDoc);
 
                       Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
+//                    Document document=mDatabase.getDocument(nordicPeriodSample.getId());
+//                    MutableDocument mutableDocument=document.toMutable();
+//                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void saveNordicPeriodSample2IntoLocalDb(NordicPeriodSample2 nordicPeriodSample2, String session_id, int subsection){
+        mAppExecutors.diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String document_id=session_id+"."+subsection+" - "+nordicPeriodSample2.getNordicName();
+                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
+                    MutableDocument newDoc = new MutableDocument(document_id);
+                    newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample2.getNordicAddress()));
+                    newDoc.setArray("tQuaternion", new MutableArray(Arrays.asList(nordicPeriodSample2.getQuaternionSupportArray())))
+                            .setArray("tAccellerometer", new MutableArray(Arrays.asList(nordicPeriodSample2.getAccelerometerSupportArray())))
+                            .setArray("tGyroscope",new MutableArray(Arrays.asList(nordicPeriodSample2.getGyroscopeSupportArray())))
+                            .setArray("tCompass", new MutableArray(Arrays.asList(nordicPeriodSample2.getCompassSupportArray())))
+                            .setArray("tEulerAngle", new MutableArray(Arrays.asList(nordicPeriodSample2.getEulerSupportArray())))
+                            .setArray("tHeading", new MutableArray(Arrays.asList(nordicPeriodSample2.getHeadingSupportArray())))
+                            .setArray("tGravityVector", new MutableArray(Arrays.asList(nordicPeriodSample2.getGravityVectorSupportArray())));
+                    mDatabase.save(newDoc);
+
+                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
+//                    Document document=mDatabase.getDocument(nordicPeriodSample.getId());
+//                    MutableDocument mutableDocument=document.toMutable();
+//                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());
+                } catch (CouchbaseLiteException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void saveNordicLastPeriodSample2IntoLocalDb(NordicPeriodSample2 nordicPeriodSample2, String session_id){
+        mAppExecutors.diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String document_id=session_id+"."+nordicPeriodSample2.getSubsection()+" - "+nordicPeriodSample2.getNordicName();
+                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
+                    MutableDocument newDoc = new MutableDocument(document_id);
+                    newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample2.getNordicAddress()));
+                    newDoc.setArray("tQuaternion", new MutableArray(Arrays.asList(nordicPeriodSample2.getQuaternionArray())))
+                            .setArray("tAccellerometer", new MutableArray(Arrays.asList(nordicPeriodSample2.getAccelerometerArray())))
+                            .setArray("tGyroscope",new MutableArray(Arrays.asList(nordicPeriodSample2.getGyroscopeArray())))
+                            .setArray("tCompass", new MutableArray(Arrays.asList(nordicPeriodSample2.getCompassArray())))
+                            .setArray("tEulerAngle", new MutableArray(Arrays.asList(nordicPeriodSample2.getEulerAngleArray())))
+                            .setArray("tHeading", new MutableArray(Arrays.asList(nordicPeriodSample2.getHeadingArray())))
+                            .setArray("tGravityVector", new MutableArray(Arrays.asList(nordicPeriodSample2.getGravityVectorArray())));
+                    mDatabase.save(newDoc);
+
+                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: document saved");
 //                    Document document=mDatabase.getDocument(nordicPeriodSample.getId());
 //                    MutableDocument mutableDocument=document.toMutable();
 //                    Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: Testing - size of the GravityVector: "+mutableDocument.getArray("tGravityVector").count());

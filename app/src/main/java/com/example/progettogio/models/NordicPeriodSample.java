@@ -6,6 +6,8 @@ import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDictionary;
 import com.example.progettogio.interfaces.SubSectionCallback;
 
+import java.sql.Timestamp;
+
 /**
  * Oggetto che contiene le liste di ogni sensore, contenente i dati della registrazione.
  */
@@ -128,64 +130,63 @@ public class NordicPeriodSample {
         checksize();
     }
 
-    public void addThingyQuaternionData(String bluetoothDeviceAddress, float w, float x, float y, float z, long timestamp) {
+    public void addThingyQuaternionData(String bluetoothDeviceAddress, float w, float x, float y, float z, Timestamp timestamp) {
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("W",w);
         dictionary.setDouble("X",x);
         dictionary.setDouble("Y",y);
         dictionary.setDouble("Z",z);
-        dictionary.setDouble("TimeStamp",timestamp);
+        dictionary.setString("TimeStamp",timestamp.toString());
         thingyQuaternionMutableArray.addValue(dictionary);
         checksize();
     }
-    public void addThingyPedometerData(String bluetoothDeviceAddress,int steps,long duration,long timestamp){
+    public void addThingyPedometerData(String bluetoothDeviceAddress,int steps,long duration,Timestamp timestamp){
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setInt("Steps",steps);
         dictionary.setLong("Duration",duration);
-        dictionary.setDouble("TimeStamp",timestamp);
+        dictionary.setString("TimeStamp",timestamp.toString());
         thingyPedometerMutableArray.addValue(dictionary);
         checksize();
     }
 
-    public void addThingyAccelerometerData(String bluetoothDeviceAddress, float x, float y, float z, long timestamp) {
+    public void addThingyAccelerometerData(String bluetoothDeviceAddress, float x, float y, float z, Timestamp timestamp) {
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("X",x);
         dictionary.setDouble("Y",y);
         dictionary.setDouble("Z",z);
-        dictionary.setDouble("TimeStamp",timestamp);
+        dictionary.setString("TimeStamp",timestamp.toString());
         thingyAccelerometerMutableArray.addValue(dictionary);
         checksize();
 
     }
 
-    public void addThingyGyroscopeData(String bluetoothDeviceAddress, float x, float y, float z,long timestamp) {
+    public void addThingyGyroscopeData(String bluetoothDeviceAddress, float x, float y, float z,Timestamp timestamp) {
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("X",x);
         dictionary.setDouble("Y",y);
         dictionary.setDouble("Z",z);
-        dictionary.setDouble("TimeStamp",timestamp);
+        dictionary.setString("TimeStamp",timestamp.toString());
         thingyGyroscopeMutableArray.addValue(dictionary);
         checksize();
-
     }
 
-    public void addThingyCompassData(String bluetoothDeviceAddress, float x, float y, float z,long timestamp) {
+    public void addThingyCompassData(String bluetoothDeviceAddress, float x, float y, float z,Timestamp timestamp) {
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("X",x);
         dictionary.setDouble("Y",y);
         dictionary.setDouble("Z",z);
-        dictionary.setDouble("TimeStamp",timestamp);
+        dictionary.setString("TimeStamp",timestamp.toString());
         thingyCompassMutableArray.addValue(dictionary);
         checksize();
 
     }
 
-    public void addThingyEulerAngleData(String bluetoothDeviceAddress, float roll, float pitch, float yaw,long timestamp) {
+    public void addThingyEulerAngleData(String bluetoothDeviceAddress, float roll, float pitch, float yaw,Timestamp timestamp) {
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("ROLL",roll);
         dictionary.setDouble("PITCH",pitch);
         dictionary.setDouble("YAW",yaw);
-        dictionary.setDouble("TimeStamp",timestamp);
+        dictionary.setString("TimeStamp",timestamp.toString());
         thingyEulerAngleMutableArray.addValue(dictionary);
         checksize();
     }
@@ -199,21 +200,21 @@ public class NordicPeriodSample {
 //        thingyRotationMatrixMutableArray.addValue(dictionary);
 //        checksize();
     }
-    public void addThingyHeadingData(String bluetoothDeviceAddress, float heading,long timestamp) {
+    public void addThingyHeadingData(String bluetoothDeviceAddress, float heading,Timestamp timestamp) {
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("Heading",heading);
-        dictionary.setDouble("TimeStamp",timestamp);
+        dictionary.setString("TimeStamp",timestamp.toString());
         thingyHeadingMutableArray.addValue(dictionary);
         checksize();
     }
 
 
-    public void addThingyGravityVectorData(String bluetoothDeviceAddress, float x, float y, float z, long timestamp) {
+    public void addThingyGravityVectorData(String bluetoothDeviceAddress, float x, float y, float z, Timestamp timestamp) {
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("X",x);
         dictionary.setDouble("Y",y);
         dictionary.setDouble("Z",z);
-        dictionary.setDouble("TimeStamp",timestamp);
+        dictionary.setString("TimeStamp",timestamp.toString());
         thingyGravityVectorMutableArray.addValue(dictionary);
         checksize();
         Log.d(TAG, "addThingyGravityVectorData: Vector Size: "+thingyGravityVectorMutableArray.count()+" X:"+dictionary.getDouble("X")+" Y:"+dictionary.getDouble("Y")
@@ -389,7 +390,7 @@ public class NordicPeriodSample {
 
         Log.d(TAG, "checksize: size: "+size);
 
-        if (size>5000) {
+        if (size>500) {
             Log.d(TAG, "checksize: ");
             callback.doNordicSubsection(nordicAddress);
             nextSubsession();
