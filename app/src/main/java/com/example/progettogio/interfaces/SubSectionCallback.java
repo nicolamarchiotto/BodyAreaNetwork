@@ -2,14 +2,11 @@ package com.example.progettogio.interfaces;
 
 public interface SubSectionCallback {
 
-    void doNordicSubsection(String address);
+    void doNordicSubsection(String address, int subSession);
 
-    void doNordicSubsection2(String address, int subSession);
+    void doPhoneSubsection(int subSession);
 
-    void doNordicLastSubsection2(String address, int subSession);
+    void doGlassesSubsection(int subSession);
 
-    void doPhoneSubsection();
-
-    void doGlassesSubsection();
 
 }

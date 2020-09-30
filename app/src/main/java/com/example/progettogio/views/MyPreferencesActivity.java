@@ -1,7 +1,6 @@
 package com.example.progettogio.views;
 
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 
@@ -9,8 +8,6 @@ import com.example.progettogio.R;
 
 public class MyPreferencesActivity extends PreferenceActivity{
 
-    private boolean smartwatch;
-    private Preference checkBoxPreference;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

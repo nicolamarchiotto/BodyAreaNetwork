@@ -1,21 +1,33 @@
 package com.example.progettogio.models;
 
-import com.couchbase.lite.MutableArray;
+import android.util.Log;
+
 import com.couchbase.lite.MutableDictionary;
 import com.example.progettogio.interfaces.SubSectionCallback;
 
+import java.sql.Timestamp;
+
 public class WagooPeriodSample {
 
-    private MutableArray wagooDataMutableArray;
-    private SubSectionCallback subSectionCallback;
+    private static final String TAG = "WagooPeriodSample";
+
+    private static int ARRAYDIMENSION=1000;
+
+    private MutableDictionary[] wagooDataMutableArray;
+    private MutableDictionary[] wagooDataSupportMutableArray;
+    private int wagooDataIndex=0;
     private int subsession=0;
 
-    public WagooPeriodSample(SubSectionCallback subsessionCallback){
-        this.wagooDataMutableArray=new MutableArray();
+    private SubSectionCallback subSectionCallback;
+    private Boolean creatingSupportArray=false;
+
+    public WagooPeriodSample(SubSectionCallback subsessionCallback,int arrayDimension){
+        ARRAYDIMENSION=arrayDimension;
+        this.wagooDataMutableArray=new MutableDictionary[ARRAYDIMENSION];
         this.subSectionCallback=subsessionCallback;
     }
 
-    public void addDataEntry(Float x, Float y, Float z, Float pitch, Float roll, Float yaw, Long timestamp){
+    public void addDataEntry(Float x, Float y, Float z, Float pitch, Float roll, Float yaw, Timestamp timestamp){
         MutableDictionary dictionary=new MutableDictionary();
         dictionary.setDouble("X",x);
         dictionary.setDouble("Y",y);
@@ -23,28 +35,44 @@ public class WagooPeriodSample {
         dictionary.setDouble("Pitch",pitch);
         dictionary.setDouble("Roll",roll);
         dictionary.setDouble("Yaw",yaw);
-        dictionary.setDouble("TimeStamp",timestamp);
-        wagooDataMutableArray.addDictionary(dictionary);
-        wagooGlassescheckSize();
+        dictionary.setString("TimeStamp",timestamp.toString());
+        try {
+            wagooDataMutableArray[wagooDataIndex]=dictionary;
+            wagooDataIndex=1;
+        }
+        catch (ArrayIndexOutOfBoundsException e){
+            Log.d(TAG, "addDataEntry: ArrayIndexOutOfBoundsException");
+            doSubsection();
+        }
+
+    }
+
+    private void doSubsection() {
+        if(!creatingSupportArray){
+            creatingSupportArray=true;
+
+            wagooDataSupportMutableArray=wagooDataMutableArray;
+            wagooDataMutableArray=new MutableDictionary[ARRAYDIMENSION];
+            wagooDataIndex=0;
+
+            subSectionCallback.doGlassesSubsection(subsession);
+            subsession+=1;
+
+            creatingSupportArray=false;
+        }
+        else
+            return;
     }
 
     public int getSubsession() {
         return subsession;
     }
 
-    public MutableArray getWagooDataMutableArray() {
-        MutableArray array=wagooDataMutableArray;
-        wagooDataMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getWagooDataMutableArray() {
+        return wagooDataMutableArray;
     }
 
-    private void wagooGlassescheckSize() {
-        if(wagooDataMutableArray.count()>500){
-            subSectionCallback.doGlassesSubsection();
-            subsession+=1;
-        }
+    public MutableDictionary[] getWagooDataSupportMutableArray() {
+        return wagooDataSupportMutableArray;
     }
-
-
-
 }

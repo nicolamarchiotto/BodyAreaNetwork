@@ -2,398 +2,293 @@ package com.example.progettogio.models;
 
 import android.util.Log;
 
-import com.couchbase.lite.MutableArray;
 import com.couchbase.lite.MutableDictionary;
 import com.example.progettogio.interfaces.SubSectionCallback;
 
 import java.sql.Timestamp;
 
-/**
- * Oggetto che contiene le liste di ogni sensore, contenente i dati della registrazione.
- */
 public class NordicPeriodSample {
 
     private static final String TAG = "NordicPeriodSample";
+
+    private static int ARRAYDIMENSION=1000;
 
     private String nordicAddress;
     private int subsession;
     private String nordicName;
     private SubSectionCallback callback;
 
-    private MutableArray thingyTemperatureMutableArray;
-    private MutableArray thingyPressureMutableArray;
-    private MutableArray thingyHumidityMutableArray;
-    private MutableArray thingyAirQualityMutableArray;
-    private MutableArray thingyColorIntensityMutableArray;
-    private MutableArray thingyButtonStateMutableArray;
-    private MutableArray thingyTapMutableArray;
-    private MutableArray thingyOrientationMutableArray;
-    private MutableArray thingyQuaternionMutableArray;
-    private MutableArray thingyPedometerMutableArray;
-    private MutableArray thingyAccelerometerMutableArray;
-    private MutableArray thingyGyroscopeMutableArray;
-    private MutableArray thingyCompassMutableArray;
-    private MutableArray thingyEulerAngleMutableArray;
-    private MutableArray thingyRotationMatrixMutableArray;
-    private MutableArray thingyHeadingMutableArray;
-    private MutableArray thingyGravityVectorMutableArray;
-    private MutableArray thingySpeakerMutableArray;
-    private MutableArray thingyMicrophoneMutableArray;
+    //    private MutableDictionary[] myArray=new MutableDictionary[500];
+    private MutableDictionary[] quaternionArray;
+    private MutableDictionary[] accelerometerArray;
+    private MutableDictionary[] gyroscopeArray;
+    private MutableDictionary[] compassArray;
+    private MutableDictionary[] eulerAngleArray;
+    private MutableDictionary[] headingArray;
+    private MutableDictionary[] gravityVectorArray;
+    private int quaternionIndex;
+    private int gyroscopeIndex;
+    private int accelerometerIndex;
+    private int compassIndex;
+    private int eulerAngleIndex;
+    private int headingIndex;
+    private int gravityVectorIndex;
+
+    private MutableDictionary[] quaternionSupportArray;
+    private MutableDictionary[] gyroscopeSupportArray;
+    private MutableDictionary[] accelerometerSupportArray;
+    private MutableDictionary[] compassSupportArray;
+    private MutableDictionary[] eulerSupportArray;
+    private MutableDictionary[] headingSupportArray;
+    private MutableDictionary[] gravityVectorSupportArray;
+
+    private Boolean creatingSupportArray=false;
 
 
-    public NordicPeriodSample(String thingyName, String deviceAddress, SubSectionCallback subsessionCallback){
-        nordicAddress=deviceAddress;
-        subsession=0;
-        nordicName=thingyName;
-        callback=subsessionCallback;
+    public NordicPeriodSample(String thingyName, String deviceAddress, SubSectionCallback subsessionCallback,int arrayDimension) {
+        nordicAddress = deviceAddress;
+        subsession = 0;
+        nordicName = thingyName;
+        callback = subsessionCallback;
+        ARRAYDIMENSION=arrayDimension;
 
-        thingyTemperatureMutableArray=new MutableArray();
-        thingyPressureMutableArray=new MutableArray();
-        thingyHumidityMutableArray=new MutableArray();
-        thingyAirQualityMutableArray=new MutableArray();
-        thingyColorIntensityMutableArray=new MutableArray();
-        thingyButtonStateMutableArray=new MutableArray();
-        thingyTapMutableArray=new MutableArray();
-        thingyOrientationMutableArray=new MutableArray();
-        thingyQuaternionMutableArray=new MutableArray();
-        thingyPedometerMutableArray=new MutableArray();
-        thingyAccelerometerMutableArray=new MutableArray();
-        thingyGyroscopeMutableArray=new MutableArray();
-        thingyCompassMutableArray=new MutableArray();
-        thingyEulerAngleMutableArray=new MutableArray();
-        thingyRotationMatrixMutableArray=new MutableArray();
-        thingyHeadingMutableArray=new MutableArray();
-        thingyGravityVectorMutableArray=new MutableArray();
-        thingySpeakerMutableArray=new MutableArray();
-        thingyMicrophoneMutableArray=new MutableArray();
-    }
+        quaternionArray = new MutableDictionary[ARRAYDIMENSION];
+        accelerometerArray = new MutableDictionary[ARRAYDIMENSION];
+        gyroscopeArray = new MutableDictionary[ARRAYDIMENSION];
+        compassArray = new MutableDictionary[ARRAYDIMENSION];
+        eulerAngleArray = new MutableDictionary[ARRAYDIMENSION];
+        headingArray = new MutableDictionary[ARRAYDIMENSION];
+        gravityVectorArray = new MutableDictionary[ARRAYDIMENSION];
 
-    public void addThingyTemperatureData(String bluetoothDeviceAddress,String temperature,long timestamp){
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setString("Temperature",temperature);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyTemperatureMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyPressureData(String bluetoothDeviceAddress,String pressure,long timestamp){
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setString("Pressure",pressure);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyPressureMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyHumidityData(String bluetoothDeviceAddress,String humidity,long timestamp){
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setString("Humidity",humidity);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyHumidityMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyAirQualityData(String bluetoothDeviceAddress,int eco2,int tvoc,long timestamp){
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setInt("Eco2",eco2);
-        dictionary.setInt("Tvoc",tvoc);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyAirQualityMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyColorIntensityData(String bluetoothDeviceAddress, float red, float green, float blue, float alpha, long timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setDouble("R",red);
-        dictionary.setDouble("G",green);
-        dictionary.setDouble("B",blue);
-        dictionary.setDouble("Alpha",alpha);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyColorIntensityMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyButtonStateData(String bluetoothDeviceAddress, int buttonState, long timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setInt("ButtonState",buttonState);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyButtonStateMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyTapData(String bluetoothDeviceAddress,int direction,int count,long timestamp){
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setInt("Direction",direction);
-        dictionary.setInt("Count",count);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyTapMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyOrientationData(String bluetoothDeviceAddress,int orientation,long timestamp){
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setInt("Orientation",orientation);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyOrientationMutableArray.addValue(dictionary);
-        checksize();
+        quaternionIndex = 0;
+        gyroscopeIndex = 0;
+        accelerometerIndex = 0;
+        compassIndex = 0;
+        eulerAngleIndex = 0;
+        headingIndex = 0;
+        gravityVectorIndex = 0;
     }
 
     public void addThingyQuaternionData(String bluetoothDeviceAddress, float w, float x, float y, float z, Timestamp timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setDouble("W",w);
-        dictionary.setDouble("X",x);
-        dictionary.setDouble("Y",y);
-        dictionary.setDouble("Z",z);
-        dictionary.setString("TimeStamp",timestamp.toString());
-        thingyQuaternionMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyPedometerData(String bluetoothDeviceAddress,int steps,long duration,Timestamp timestamp){
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setInt("Steps",steps);
-        dictionary.setLong("Duration",duration);
-        dictionary.setString("TimeStamp",timestamp.toString());
-        thingyPedometerMutableArray.addValue(dictionary);
-        checksize();
+        MutableDictionary dictionary = new MutableDictionary();
+        dictionary.setDouble("W", w);
+        dictionary.setDouble("X", x);
+        dictionary.setDouble("Y", y);
+        dictionary.setDouble("Z", z);
+        dictionary.setString("TimeStamp", timestamp.toString());
+        try {
+            quaternionArray[quaternionIndex] = dictionary;
+            quaternionIndex += 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            Log.d(TAG, "addThingyQuaternionData: ArrayIndexOutOfBoundsException");
+            doSubsection();
+        }
     }
 
     public void addThingyAccelerometerData(String bluetoothDeviceAddress, float x, float y, float z, Timestamp timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setDouble("X",x);
-        dictionary.setDouble("Y",y);
-        dictionary.setDouble("Z",z);
-        dictionary.setString("TimeStamp",timestamp.toString());
-        thingyAccelerometerMutableArray.addValue(dictionary);
-        checksize();
+        MutableDictionary dictionary = new MutableDictionary();
+        dictionary.setDouble("X", x);
+        dictionary.setDouble("Y", y);
+        dictionary.setDouble("Z", z);
+        dictionary.setString("TimeStamp", timestamp.toString());
+        try {
+            accelerometerArray[accelerometerIndex] = dictionary;
+            accelerometerIndex += 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            Log.d(TAG, "addThingyAccelerometerData: ArrayIndexOutOfBoundsException");
+            doSubsection();
+        }
 
     }
 
-    public void addThingyGyroscopeData(String bluetoothDeviceAddress, float x, float y, float z,Timestamp timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setDouble("X",x);
-        dictionary.setDouble("Y",y);
-        dictionary.setDouble("Z",z);
-        dictionary.setString("TimeStamp",timestamp.toString());
-        thingyGyroscopeMutableArray.addValue(dictionary);
-        checksize();
+    public void addThingyGyroscopeData(String bluetoothDeviceAddress, float x, float y, float z, Timestamp timestamp) {
+        MutableDictionary dictionary = new MutableDictionary();
+        dictionary.setDouble("X", x);
+        dictionary.setDouble("Y", y);
+        dictionary.setDouble("Z", z);
+        dictionary.setString("TimeStamp", timestamp.toString());
+        try {
+            gyroscopeArray[gyroscopeIndex] = dictionary;
+            gyroscopeIndex += 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            Log.d(TAG, "addThingyGyroscopeData: ArrayIndexOutOfBoundsException");
+            doSubsection();
+        }
     }
 
-    public void addThingyCompassData(String bluetoothDeviceAddress, float x, float y, float z,Timestamp timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setDouble("X",x);
-        dictionary.setDouble("Y",y);
-        dictionary.setDouble("Z",z);
-        dictionary.setString("TimeStamp",timestamp.toString());
-        thingyCompassMutableArray.addValue(dictionary);
-        checksize();
-
+    public void addThingyCompassData(String bluetoothDeviceAddress, float x, float y, float z, Timestamp timestamp) {
+        MutableDictionary dictionary = new MutableDictionary();
+        dictionary.setDouble("X", x);
+        dictionary.setDouble("Y", y);
+        dictionary.setDouble("Z", z);
+        dictionary.setString("TimeStamp", timestamp.toString());
+        try {
+            compassArray[compassIndex] = dictionary;
+            compassIndex += 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            Log.d(TAG, "addThingyCompassData: ArrayIndexOutOfBoundsException");
+            doSubsection();
+        }
     }
 
-    public void addThingyEulerAngleData(String bluetoothDeviceAddress, float roll, float pitch, float yaw,Timestamp timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setDouble("ROLL",roll);
-        dictionary.setDouble("PITCH",pitch);
-        dictionary.setDouble("YAW",yaw);
-        dictionary.setString("TimeStamp",timestamp.toString());
-        thingyEulerAngleMutableArray.addValue(dictionary);
-        checksize();
+    public void addThingyEulerAngleData(String bluetoothDeviceAddress, float roll, float pitch, float yaw, Timestamp timestamp) {
+        MutableDictionary dictionary = new MutableDictionary();
+        dictionary.setDouble("ROLL", roll);
+        dictionary.setDouble("PITCH", pitch);
+        dictionary.setDouble("YAW", yaw);
+        dictionary.setString("TimeStamp", timestamp.toString());
+        try {
+            eulerAngleArray[eulerAngleIndex] = dictionary;
+            eulerAngleIndex += 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            Log.d(TAG, "addThingyEulerAngleData: ArrayIndexOutOfBoundsException");
+            doSubsection();
+        }
     }
 
-    //TODO come gestire una matrice in un documento couchBase??? Vedi anche onMicrophoneValueChangeEvent
-    public void addThingyRotationMatrixData(String bluetoothDeviceAddress, byte matrix[],long timestamp) {
-//        Log.d(TAG, "addThingyRotationMatrixData: "+new String(matrix));
-//        MutableDictionary dictionary=new MutableDictionary();
-//        dictionary.setString("RotationMatrix",new String(matrix));
-//        dictionary.setDouble("TimeStamp",timestamp);
-//        thingyRotationMatrixMutableArray.addValue(dictionary);
-//        checksize();
+    public void addThingyHeadingData(String bluetoothDeviceAddress, float heading, Timestamp timestamp) {
+        MutableDictionary dictionary = new MutableDictionary();
+        dictionary.setDouble("Heading", heading);
+        dictionary.setString("TimeStamp", timestamp.toString());
+        try {
+            headingArray[headingIndex] = dictionary;
+            headingIndex += 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            Log.d(TAG, "addThingyHeadingData: ArrayIndexOutOfBoundsException");
+            doSubsection();
+        }
     }
-    public void addThingyHeadingData(String bluetoothDeviceAddress, float heading,Timestamp timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setDouble("Heading",heading);
-        dictionary.setString("TimeStamp",timestamp.toString());
-        thingyHeadingMutableArray.addValue(dictionary);
-        checksize();
-    }
-
 
     public void addThingyGravityVectorData(String bluetoothDeviceAddress, float x, float y, float z, Timestamp timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setDouble("X",x);
-        dictionary.setDouble("Y",y);
-        dictionary.setDouble("Z",z);
-        dictionary.setString("TimeStamp",timestamp.toString());
-        thingyGravityVectorMutableArray.addValue(dictionary);
-        checksize();
-        Log.d(TAG, "addThingyGravityVectorData: Vector Size: "+thingyGravityVectorMutableArray.count()+" X:"+dictionary.getDouble("X")+" Y:"+dictionary.getDouble("Y")
-                +" Z:"+dictionary.getDouble("Z")+" Timestamp"+dictionary.getLong("TimeStamp"));
-    }
-    public void addThingySpeakerStatusData(String bluetoothDeviceAddress, int status, long timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setInt("Status",status);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingySpeakerMutableArray.addValue(dictionary);
-        checksize();
-    }
-    public void addThingyMicrophoneData(String bluetoothDeviceAddress, byte data[], long timestamp) {
-        MutableDictionary dictionary=new MutableDictionary();
-        dictionary.setValue("Data",data);
-        dictionary.setDouble("TimeStamp",timestamp);
-        thingyMicrophoneMutableArray.addValue(dictionary);
-        checksize();
+        MutableDictionary dictionary = new MutableDictionary();
+        dictionary.setDouble("X", x);
+        dictionary.setDouble("Y", y);
+        dictionary.setDouble("Z", z);
+        dictionary.setString("TimeStamp", timestamp.toString());
+        try {
+            gravityVectorArray[gravityVectorIndex] = dictionary;
+            gravityVectorIndex += 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            Log.d(TAG, "addThingyGravityVectorData: ArrayIndexOutOfBoundsException");
+            doSubsection();
+        }
+//        Log.d(TAG, "addThingyGravityVectorData: Vector Size: "+gravityVectorArray.length+" X:"+dictionary.getDouble("X")+" Y:"+dictionary.getDouble("Y")
+//                +" Z:"+dictionary.getDouble("Z")+" Timestamp"+dictionary.getLong("TimeStamp"));
     }
 
-    public MutableArray getThingyTemperatureMutableArray() {
-        MutableArray array=thingyTemperatureMutableArray;
-        thingyTemperatureMutableArray=new MutableArray();
-        return array;
+    public void doSubsection(){
+        if(!creatingSupportArray){
+            creatingSupportArray=true;
+
+            quaternionSupportArray = quaternionArray;
+            quaternionArray = new MutableDictionary[ARRAYDIMENSION];
+            quaternionIndex = 0;
+
+            gyroscopeSupportArray = accelerometerArray;
+            accelerometerArray = new MutableDictionary[ARRAYDIMENSION];
+            accelerometerIndex = 0;
+
+            accelerometerSupportArray = gyroscopeArray;
+            gyroscopeArray = new MutableDictionary[ARRAYDIMENSION];
+            gyroscopeIndex = 0;
+
+            compassSupportArray = compassArray;
+            compassArray = new MutableDictionary[ARRAYDIMENSION];
+            compassIndex = 0;
+
+            eulerSupportArray = eulerAngleArray;
+            eulerAngleArray = new MutableDictionary[ARRAYDIMENSION];
+            eulerAngleIndex = 0;
+
+            headingSupportArray = headingArray;
+            headingArray = new MutableDictionary[ARRAYDIMENSION];
+            headingIndex = 0;
+
+            gravityVectorSupportArray = gravityVectorArray;
+            gravityVectorArray = new MutableDictionary[ARRAYDIMENSION];
+            gravityVectorIndex = 0;
+
+            callback.doNordicSubsection(nordicAddress,subsession);
+            subsession+=1;
+
+            creatingSupportArray=false;
+        }
+        else
+            return;
+
     }
 
-    public MutableArray getThingyPressureMutableArray() {
-        MutableArray array=thingyPressureMutableArray;
-        thingyPressureMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getQuaternionArray() {
+        return quaternionArray;
     }
 
-    public MutableArray getThingyHumidityMutableArray() {
-        MutableArray array=thingyHumidityMutableArray;
-        thingyHumidityMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getAccelerometerArray() {
+        return accelerometerArray;
     }
 
-    public MutableArray getThingyAirQualityMutableArray() {
-        MutableArray array=thingyAirQualityMutableArray;
-        thingyAirQualityMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getGyroscopeArray() {
+        return gyroscopeArray;
     }
 
-    public MutableArray getThingyColorIntensityMutableArray() {
-        MutableArray array=thingyColorIntensityMutableArray;
-        thingyColorIntensityMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getCompassArray() {
+        return compassArray;
     }
 
-    public MutableArray getThingyButtonStateMutableArray() {
-        MutableArray array=thingyButtonStateMutableArray;
-        thingyButtonStateMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getEulerAngleArray() {
+        return eulerAngleArray;
     }
 
-    public MutableArray getThingyTapMutableArray() {
-        MutableArray array=thingyTapMutableArray;
-        thingyTapMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getHeadingArray() {
+        return headingArray;
     }
 
-    public MutableArray getThingyOrientationMutableArray() {
-        MutableArray array=thingyOrientationMutableArray;
-        thingyOrientationMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getGravityVectorArray() {
+        return gravityVectorArray;
     }
 
-    public MutableArray getThingyPedometerMutableArray() {
-        MutableArray array=thingyPedometerMutableArray;
-        thingyPedometerMutableArray=new MutableArray();
-        return array;
+    //support
+
+    public MutableDictionary[] getQuaternionSupportArray() {
+        return quaternionSupportArray;
     }
 
-    public MutableArray getThingyAccelerometerMutableArray() {
-        MutableArray array=thingyAccelerometerMutableArray;
-        thingyAccelerometerMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getGyroscopeSupportArray() {
+        return gyroscopeSupportArray;
     }
 
-    public MutableArray getThingyRotationMatrixMutableArray() {
-        MutableArray array=thingyRotationMatrixMutableArray;
-        thingyRotationMatrixMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getAccelerometerSupportArray() {
+        return accelerometerSupportArray;
     }
 
-    public MutableArray getThingyHeadingMutableArray() {
-        MutableArray array=thingyHeadingMutableArray;
-        thingyHeadingMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getCompassSupportArray() {
+        return compassSupportArray;
     }
 
-    public MutableArray getThingySpeakerMutableArray() {
-        MutableArray array=thingySpeakerMutableArray;
-        thingySpeakerMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getEulerSupportArray() {
+        return eulerSupportArray;
     }
 
-    public MutableArray getThingyMicrophoneMutableArray() {
-        MutableArray array=thingyMicrophoneMutableArray;
-        thingyMicrophoneMutableArray=new MutableArray();
-        return array;
+    public MutableDictionary[] getHeadingSupportArray() {
+        return headingSupportArray;
     }
 
-    public MutableArray getThingyQuaternionMutableArray() {
-        MutableArray array=thingyQuaternionMutableArray;
-        thingyQuaternionMutableArray=new MutableArray();
-        return array;
-    }
-
-    public MutableArray getThingyGyroscopeMutableArray() {
-        MutableArray array=thingyGyroscopeMutableArray;
-        thingyGyroscopeMutableArray=new MutableArray();
-        return array;
-    }
-
-    public MutableArray getThingyCompassMutableArray() {
-        MutableArray array=thingyCompassMutableArray;
-        thingyCompassMutableArray=new MutableArray();
-        return array;
-    }
-
-    public MutableArray getThingyEulerAngleMutableArray() {
-        MutableArray array=thingyEulerAngleMutableArray;
-        thingyEulerAngleMutableArray=new MutableArray();
-        return array;
-    }
-
-    public MutableArray getThingyGravityVectorMutableArray() {
-        MutableArray array=thingyGravityVectorMutableArray;
-        thingyGravityVectorMutableArray=new MutableArray();
-        return array;
-    }
-
-
-
-
-
-
-    public String getNordicAddress() { return nordicAddress; }
-
-    public int getSubsession() { return subsession; }
-
-    public void nextSubsession(){
-        subsession+=1;
-        Log.d(TAG, "nextSubsession: "+subsession);
+    public MutableDictionary[] getGravityVectorSupportArray() {
+        return gravityVectorSupportArray;
     }
 
     public String getNordicName() {
         return nordicName;
     }
 
-    public void checksize(){
-        int size= thingyTemperatureMutableArray.count()+
-                    thingyPressureMutableArray.count()+
-                    thingyHumidityMutableArray.count()+
-                    thingyAirQualityMutableArray.count()+
-                    thingyColorIntensityMutableArray.count()+
-                    thingyButtonStateMutableArray.count()+
-                    thingyTapMutableArray.count()+
-                    thingyOrientationMutableArray.count()+
-                    thingyQuaternionMutableArray.count()+
-                    thingyPedometerMutableArray.count()+
-                    thingyAccelerometerMutableArray.count()+
-                    thingyGyroscopeMutableArray.count()+
-                    thingyCompassMutableArray.count()+
-                    thingyEulerAngleMutableArray.count()+
-                    thingyRotationMatrixMutableArray.count()+
-                    thingyHeadingMutableArray.count()+
-                    thingyGravityVectorMutableArray.count()+
-                    thingySpeakerMutableArray.count()+
-                    thingyMicrophoneMutableArray.count();
+    public String getNordicAddress() {
+        return nordicAddress;
+    }
 
-        Log.d(TAG, "checksize: size: "+size);
+    public void setNordicAddress(String nordicAddress) {
+        this.nordicAddress = nordicAddress;
+    }
 
-        if (size>500) {
-            Log.d(TAG, "checksize: ");
-            callback.doNordicSubsection(nordicAddress);
-            nextSubsession();
-        }
+    public int getSubsection() {
+        return subsession;
     }
 }

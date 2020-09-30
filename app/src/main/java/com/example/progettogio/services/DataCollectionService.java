@@ -19,7 +19,7 @@ import androidx.core.app.NotificationCompat;
 import com.example.progettogio.R;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.interfaces.SubSectionCallback;
-import com.example.progettogio.models.NordicPeriodSample2;
+import com.example.progettogio.models.NordicPeriodSample;
 import com.example.progettogio.models.PhonePeriodSample;
 import com.example.progettogio.models.WagooPeriodSample;
 import com.example.progettogio.views.MainActivity;
@@ -51,7 +51,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     private SensorManager mPhoneSensorManager;
     private PhonePeriodSample phonePeriodSample;
 
-    private HashMap<String, NordicPeriodSample2> nordicHashMap;
+    private HashMap<String, NordicPeriodSample> nordicHashMap;
     private String session_id;
     private Boolean phone_sensors_on;
 
@@ -59,6 +59,8 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     private Boolean wagoo_glasses_connected;
     private Function1<AccelGyroInfo, Unit> wagooFunctionCallback;
     private WagooPeriodSample wagooPeriodSample;
+
+    private int ARRAYDIMENSION=1000;
 
 
 
@@ -86,7 +88,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         for(BluetoothDevice device : thingySdkManager.getConnectedDevices()) {
             Log.d(TAG, "startCollection: connettendo il device "+device.getAddress()+" al listener in DataCollectorService");
             ThingyListenerHelper.registerThingyListener(getApplicationContext(),thingyListener,device);
-            nordicHashMap.put(device.getAddress(),new NordicPeriodSample2("N"+nordicNumber+"-"+device.getName(),device.getAddress(), this));
+            nordicHashMap.put(device.getAddress(),new NordicPeriodSample("N"+nordicNumber+"-"+device.getName(),device.getAddress(), this,ARRAYDIMENSION));
             nordicNumber+=1;
             thingySdkManager.enableMotionNotifications(device,true);
             Log.d(TAG, "onCreate: "+device.getAddress()+" - wake state "+thingySdkManager.getWakeOnMotionState(device));
@@ -94,7 +96,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
         wagooFunctionCallback=(accelGyroInfo) -> {
             wagooPeriodSample.addDataEntry(accelGyroInfo.getAccl().getX(),accelGyroInfo.getAccl().getY(),accelGyroInfo.getAccl().getZ(),
-                    accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getRoll(),accelGyroInfo.getTimestamp());
+                    accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getRoll(),new Timestamp(System.currentTimeMillis()));
 
             Log.d(TAG, "wagooFunctionCallback: called");
             return Unit.INSTANCE;
@@ -111,11 +113,11 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         wagoo_glasses_connected=intent.getBooleanExtra("WAGOO_GLASSES_CONNECTED",false);
 
         if(phone_sensors_on)
-            phonePeriodSample=new PhonePeriodSample(mPhoneSensorManager,this);
+            phonePeriodSample=new PhonePeriodSample(mPhoneSensorManager,this,ARRAYDIMENSION);
 
         if(wagoo_glasses_connected){
             mWagooGlassesInterface.register_collect_sensors_callback(wagooFunctionCallback);
-            wagooPeriodSample=new WagooPeriodSample(this);
+            wagooPeriodSample=new WagooPeriodSample(this,ARRAYDIMENSION);
         }
 
         DataMapper.getInstance().setReplicator();
@@ -159,18 +161,19 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     public void onDestroy() {
         for(BluetoothDevice device:thingySdkManager.getConnectedDevices()){
             ThingyListenerHelper.unregisterThingyListener(getApplicationContext(),thingyListener);
-            DataMapper.getInstance().saveNordicLastPeriodSample2IntoLocalDb(nordicHashMap.get(device.getAddress()),session_id);
+            DataMapper.getInstance().saveNordicLastPeriodSampleIntoLocalDb(nordicHashMap.get(device.getAddress()),session_id);
 //            Log.d(TAG, "onDestroy: unregisting listener for nordic: "+device.getAddress());
         }
         if(phone_sensors_on){
             phonePeriodSample.unRegisterPhoneListeners();
-            DataMapper.getInstance().savePhonePeriodSampleIntoDbLocal(phonePeriodSample,session_id);
+            DataMapper.getInstance().savePhoneLastPeriodSampleIntoDbLocal(phonePeriodSample,session_id);
         }
 
         if(wagoo_glasses_connected){
             mWagooGlassesInterface.unregister_collect_sensors_callback(wagooFunctionCallback);
-            DataMapper.getInstance().saveWagooPeriodSampleIntoDbLocal(wagooPeriodSample,session_id);
+            DataMapper.getInstance().saveWagooLastPeriodSampleIntoDbLocal(wagooPeriodSample,session_id);
         }
+//        DataMapper.getInstance().waitForPreviousFileToBeSaveAndStarReplication();
         DataMapper.getInstance().startReplication();
         super.onDestroy();
     }
@@ -294,36 +297,23 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
     }
 
     @Override
-    public void doNordicSubsection(String address) {
-        Log.d(TAG, "doNordicSubsection: ");
-//        DataMapper.getInstance().saveNordicPeriodSampleIntoDbLocal(nordicHashMap.get(address),session_id);
-        DataMapper.getInstance().startReplication();
-    }
-
-    @Override
-    public void doPhoneSubsection() {
+    public void doPhoneSubsection(int subSession) {
         Log.d(TAG, "doPhoneSubsection: ");
-        DataMapper.getInstance().savePhonePeriodSampleIntoDbLocal(phonePeriodSample,session_id);
-        DataMapper.getInstance().startReplication();
+        DataMapper.getInstance().savePhonePeriodSampleIntoDbLocal(phonePeriodSample,session_id,subSession);
+//        DataMapper.getInstance().startReplication();
     }
 
     @Override
-    public void doGlassesSubsection() {
+    public void doGlassesSubsection(int subSession) {
         Log.d(TAG, "doGlassesSubsection: ");
-        DataMapper.getInstance().saveWagooPeriodSampleIntoDbLocal(wagooPeriodSample,session_id);
-        DataMapper.getInstance().startReplication();
-    }
-    @Override
-    public void doNordicSubsection2(String address, int subSection) {
-        Log.d(TAG, "doNordicSubsection2: ");
-        DataMapper.getInstance().saveNordicPeriodSample2IntoLocalDb(nordicHashMap.get(address),session_id,subSection);
-        DataMapper.getInstance().startReplication();
-    }
-    @Override
-    public void doNordicLastSubsection2(String address, int subSection) {
-        Log.d(TAG, "doNordicLastSubsection2: ");
-        DataMapper.getInstance().saveNordicLastPeriodSample2IntoLocalDb(nordicHashMap.get(address),session_id);
-        DataMapper.getInstance().startReplication();
+        DataMapper.getInstance().saveWagooPeriodSampleIntoDbLocal(wagooPeriodSample,session_id,subSession);
+//        DataMapper.getInstance().startReplication();
     }
 
+    @Override
+    public void doNordicSubsection(String address, int subSection) {
+        Log.d(TAG, "doNordicSubsection2: ");
+        DataMapper.getInstance().saveNordicPeriodSampleIntoLocalDb(nordicHashMap.get(address),session_id,subSection);
+//        DataMapper.getInstance().startReplication();
+    }
 }

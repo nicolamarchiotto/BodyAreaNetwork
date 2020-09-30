@@ -279,6 +279,7 @@ public class BluetoothConnectionService {
                     Intent incomingMessageIntent=new Intent("incomingMessage");
                     incomingMessageIntent.putExtra("theMessage",incomingMessage);
                     LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
+
                 } catch (IOException e) {
                     Log.e(TAG, "write: Error reading Input Stream. " + e.getMessage() );
                     break;

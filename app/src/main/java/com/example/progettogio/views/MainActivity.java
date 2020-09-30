@@ -35,6 +35,7 @@ import com.example.progettogio.adapters.DevsScanListener;
 import com.example.progettogio.adapters.DevsSelectedListener;
 import com.example.progettogio.databinding.ActivityMainBinding;
 import com.example.progettogio.db.DataMapper;
+import com.example.progettogio.interfaces.ReplicationCallback;
 import com.example.progettogio.models.GeneralDevice;
 import com.example.progettogio.models.Scanner_BTLE;
 import com.example.progettogio.services.BluetoothConnectionService;
@@ -71,7 +72,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         DevsScanListener,
         DevsSelectedListener,
         WaitingForDoctorDialogFragment.WaitingDialogListener,
-        ChangeThingyNameDialogFragment.ChangeThingyNameListener {
+        ChangeThingyNameDialogFragment.ChangeThingyNameListener,
+        ReplicationCallback {
 
 
     private final static String TAG = "MainActivity";
@@ -138,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private ChangeThingyNameDialogFragment changeThingyNameDialogFragment;
 
 
+    private SharedPreferences pref;
     private SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener;
 
     //session data
@@ -149,6 +152,28 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private Boolean phone_vibration=false;
     private Boolean watch_vibration=false;
     private Boolean wagoo_lights=false;
+
+    private Boolean click=false;
+
+    @Override
+    public void replicatorConnecting() {
+        Toast.makeText(this,"Connecting to remote database",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void replicatorBusy() {
+//        Toast.makeText(this,"Replication started",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void replicatorOffline() {
+        Toast.makeText(this,"Can't connect to remote database",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void replicatorStopped() {
+        Toast.makeText(this,"Replication stopped",Toast.LENGTH_SHORT).show();
+    }
 
     private class SmartWatchPingThread extends Thread{
         @Override
@@ -185,6 +210,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
         toolbar =  (Toolbar) activityMainBinding.toolbar;
         setSupportActionBar(toolbar);
+        pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         PreferenceManager.setDefaultValues(this, R.xml.preferences, true);
         preferenceChangeListener=new SharedPreferences.OnSharedPreferenceChangeListener(){
             @Override
@@ -193,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                     searchAndConnectSmartWatch=sharedPreferences.getBoolean(key,true);
             }
         };
-        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(preferenceChangeListener);
+        pref.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
 
         //Nordic SDK
         thingySdkManager = ThingySdkManager.getInstance();
@@ -313,44 +339,45 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         soundVibrationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(soundVibrationLightsOn){
-                    soundVibrationLightsOn =false;
-                    mSoundVibrationThread.end();
-                    if(wagooGlassesInterface.isConnected()){
-                        wagooGlassesInterface.set_lights(0.0f, 0,false,false,false);
-                    }
-                    if(smartWatchConnected){
-                        for (Node node : nodes)
-                            Wearable.getMessageClient(getApplicationContext()).sendMessage(
-                                    node.getId(), "/stop", "STOP".getBytes());
-                    }
-                }
-                else{
-                    soundVibrationLightsOn =true;
-                    if(smartWatchConnected){
-                        if (nodes != null) {
-                            for (Node node : nodes)
-                                Wearable.getMessageClient(getApplicationContext()).sendMessage(
-                                        node.getId(), "/vibration", "30".getBytes());
-                        }
-                    }
-                    if(wagooGlassesInterface.isConnected()){
-                        wagooGlassesInterface.set_lights(1.0f,1000,true,true,true);
-                    }
-                    mSoundVibrationThread = new SoundVibrationThread(getApplicationContext(), true, true, 30);
-                    mSoundVibrationThread.start();
+                DataMapper.getInstance().setReplicator();
+                DataMapper.getInstance().startReplication();
 
-                }
+//                if(soundVibrationLightsOn){
+//                    soundVibrationLightsOn =false;
+//                    mSoundVibrationThread.end();
+//                    if(wagooGlassesInterface.isConnected()){
+//                        wagooGlassesInterface.set_lights(0.0f, 0,false,false,false);
+//                    }
+//                    if(smartWatchConnected){
+//                        for (Node node : nodes)
+//                            Wearable.getMessageClient(getApplicationContext()).sendMessage(
+//                                    node.getId(), "/stop", "STOP".getBytes());
+//                    }
+//                }
+//                else{
+//                    soundVibrationLightsOn =true;
+//                    if(smartWatchConnected){
+//                        if (nodes != null) {
+//                            for (Node node : nodes)
+//                                Wearable.getMessageClient(getApplicationContext()).sendMessage(
+//                                        node.getId(), "/vibration", "30".getBytes());
+//                        }
+//                    }
+//                    if(wagooGlassesInterface.isConnected()){
+//                        wagooGlassesInterface.set_lights(1.0f,1000,true,true,true);
+//                    }
+//                    mSoundVibrationThread = new SoundVibrationThread(getApplicationContext(), true, true, 30);
+//                    mSoundVibrationThread.start();
+//                }
             }
         });
 
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         searchAndConnectSmartWatch=pref.getBoolean("smartwatch",true);
         if(searchAndConnectSmartWatch){
             connectToWearable();
         }
 
-        DataMapper.getInstance().setContext(getApplicationContext());
+        DataMapper.getInstance().setContext(getApplicationContext(),this);
 
     }
 
@@ -440,8 +467,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             if(!searchAndConnectSmartWatch){
                 smartWatchConnected=false;
             }
-            SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
-            String motion_frequency_thingy = pref.getString("motion_frequency_thingy", "25");
+
+            String motion_frequency_thingy = pref.getString("motion_frequency_thingy", "200");
             for(BluetoothDevice device:thingySdkManager.getConnectedDevices()){
                 thingySdkManager.setMotionProcessingFrequency(device,Integer.valueOf(motion_frequency_thingy));
                 thingySdkManager.enableMotionNotifications(device,true);
@@ -604,7 +631,31 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
         @Override
         public void onServiceDiscoveryCompleted(BluetoothDevice device) {
+            /**
+             *uint16_t - Min connection interval (unit 1.25 ms).
+             * min 6 -> 7.5 ms
+             * max 3200 -> 4 s
+             * uint16_t - Max connection interval (unit 1.25 ms).
+             * Same as above.
+             * uint16_t - Slave latency (number of connection events).
+             * Range 0-499
+             * uint16_t - Supervision timeout (unit 10 ms).
+             * Min 10 -> 100 ms
+             * Max 3200 -> 32 s
+             * The following constraint applies: conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval
+             * that corresponds to the following Bluetooth Spec requirement:
+             * The Supervision_Timeout in milliseconds must be larger than (1 + Conn_Latency) * Conn_Interval_Max * 2,
+             * where Conn_Interval_Max is given in milliseconds.
+             */
 
+            String motion_frequency_thingy = pref.getString("motion_frequency_thingy", "200");
+
+            int minConnectionInterval=6;
+            int maxConnectionInterval=10;
+            int slaveLatency=10;
+            int connectionSupervisionTimeout=((1+slaveLatency)*maxConnectionInterval)/4+1;
+            thingySdkManager.setConnectionParameters(device,minConnectionInterval, maxConnectionInterval,slaveLatency,100);
+            thingySdkManager.setMotionProcessingFrequency(device,Integer.valueOf(motion_frequency_thingy));
         }
 
         @Override
@@ -724,16 +775,16 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 switch (split[1]){
                     case "connectedThreadReady":
                         Log.d(TAG, "onReceive: ConnectedThread Ready");
-                        String support="";
+                        String availableDevices="";
                         if(smartWatchConnected)
-                            support+="_1";
+                            availableDevices+="1";
                         else
-                            support+="_0";
+                            availableDevices+="0";
                         if(wagooGlassesInterface.isConnected())
-                            support+="_1";
+                            availableDevices+="_1";
                         else
-                            support+="_0";
-                        mBluetoothConnectionService.write(("1_1_1"+support).getBytes());
+                            availableDevices+="_0";
+                        mBluetoothConnectionService.write((availableDevices).getBytes());
                         if(waitingDialogFragment!=null){
                             waitingDialogFragment.dismiss();
                         }
@@ -765,8 +816,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                         stopDataCollection();
                         break;
                     case "6":
-                        if(sessionOngoingDialogFragment!=null)
+                        if(sessionOngoingDialogFragment!=null){
                             sessionOngoingDialogFragment.dismiss();
+                            mBluetoothConnectionService.closeConnectedThread();
+                        }
                         break;
                 }
             }
