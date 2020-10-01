@@ -1,6 +1,6 @@
 package com.wagoo.utilities
 import android.Manifest
-import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -8,7 +8,7 @@ import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.atomic.AtomicInteger
 
-class PermissionAsyncRequester(val activity: Activity) {
+class PermissionAsyncRequester(val activity: AppCompatActivity) {
     private val permissionRequestCounter = AtomicInteger(0)
     private val uid: Int
         get() = permissionRequestCounter.getAndIncrement()

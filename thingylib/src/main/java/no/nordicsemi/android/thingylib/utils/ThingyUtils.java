@@ -38,7 +38,6 @@
 
 package no.nordicsemi.android.thingylib.utils;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -50,6 +49,8 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.webkit.URLUtil;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
@@ -463,7 +464,7 @@ public class ThingyUtils {
         return i;
     }
 
-    public static void showToast(Activity activity, String message) {
+    public static void showToast(AppCompatActivity activity, String message) {
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
     }
 

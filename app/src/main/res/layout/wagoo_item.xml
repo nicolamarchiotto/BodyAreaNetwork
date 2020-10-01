@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
 <!--        <variable-->
 <!--            name="device"-->
 <!--            type="com.example.progettogio.models.GeneralDevice" />-->
     </data>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/wagoo_container"
     android:layout_width="match_parent"
@@ -25,7 +24,7 @@
         android:layout_height="27dp"
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
-        android:src="@drawable/ic_icons_glasses"
+        app:srcCompat="@drawable/ic_icons_glasses"
         tools:ignore="contentDescription" />
 
     <TextView

@@ -6,7 +6,6 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.couchbase.lite.AbstractReplicator;
 import com.couchbase.lite.CouchbaseLite;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
@@ -109,7 +108,6 @@ public class DataMapper {
             if (change.getStatus().getActivityLevel() == Replicator.ActivityLevel.STOPPED) {
                 Log.i(TAG, "Replication stopped");
                 mReplicationCallback.replicatorStopped();
-
             }
         });
 
@@ -141,38 +139,27 @@ public class DataMapper {
         });
     }
 
-    public void startReplication() {
+    public void waitForPreviousFileToBeSaveAndStarReplication() {
+        mAppExecutors.diskIO().shutdown();
 
-        AbstractReplicator.Status c=replicator.getStatus();
-        Log.d(TAG, "startReplication: "+replicator.getStatus().getActivityLevel());
-        if(replicator.getStatus().getActivityLevel()== AbstractReplicator.ActivityLevel.BUSY)
-            return;
-        else{
-            mAppExecutors.networkIO().execute(new Runnable() {
-                @Override
-                public void run() {
-                    replicator.start();
-                }
-            });
+        while(!mAppExecutors.diskIO().isTerminated()){
+            Log.d(TAG, "waitForPreviousFileToBeSaveAndStarReplication: savingNotYetTerminated");
         }
+        startReplication();
     }
 
-//    public void waitForPreviousFileToBeSaveAndStarReplication(){
-//        mAppExecutors.diskIO().execute(new Runnable() {
-//            @Override
-//            public void run() {
-//                mAppExecutors.diskIO().shutdown();
-//                try {
-//                    if (!threadPool.awaitTermination(60, TimeUnit.SECONDS)) {
-//                        threadPool.shutdownNow();
-//                    }
-//                } catch (InterruptedException ex) {
-//                    threadPool.shutdownNow();
-//                    Thread.currentThread().interrupt();
-//                }
-//            }
-//        });
-//    }
+    public void startReplication() {
+        mAppExecutors.networkIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                replicator.start();
+            }
+        });
+    }
+
+    public void stopReplication(){
+        replicator.stop();
+    }
 
     public void saveNordicPeriodSampleIntoLocalDb(NordicPeriodSample nordicPeriodSample, String session_id, int subsection){
         String document_id=session_id+"."+subsection+" - "+ nordicPeriodSample.getNordicName();
@@ -187,6 +174,10 @@ public class DataMapper {
                 .setArray("tHeading", new MutableArray(Arrays.asList(nordicPeriodSample.getHeadingSupportArray())))
                 .setArray("tGravityVector", new MutableArray(Arrays.asList(nordicPeriodSample.getGravityVectorSupportArray())));
 
+//        if(mAppExecutors.diskIO().isShutdown() || mAppExecutors.diskIO().isTerminated()){
+//            mAppExecutors.networkIO().shutdown();
+//            mAppExecutors=new AppExecutors();
+//        }
         mAppExecutors.diskIO().execute(new Runnable() {
             @Override
             public void run() {
@@ -207,6 +198,7 @@ public class DataMapper {
         Toast.makeText(mContext,"Saving "+newDoc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
     }
 
+
     public void saveNordicLastPeriodSampleIntoLocalDb(NordicPeriodSample nordicPeriodSample, String session_id){
         String document_id=session_id+"."+ nordicPeriodSample.getSubsection()+" - "+ nordicPeriodSample.getNordicName();
         Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
@@ -219,6 +211,11 @@ public class DataMapper {
                 .setArray("tEulerAngle", new MutableArray(Arrays.asList(nordicPeriodSample.getEulerAngleArray())))
                 .setArray("tHeading", new MutableArray(Arrays.asList(nordicPeriodSample.getHeadingArray())))
                 .setArray("tGravityVector", new MutableArray(Arrays.asList(nordicPeriodSample.getGravityVectorArray())));
+//
+//        if(mAppExecutors.diskIO().isShutdown() || mAppExecutors.diskIO().isTerminated()){
+//            mAppExecutors.networkIO().shutdown();
+//            mAppExecutors=new AppExecutors();
+//        }
 
         mAppExecutors.diskIO().execute(new Runnable() {
             @Override
@@ -248,6 +245,11 @@ public class DataMapper {
         doc.setArray("Name", new MutableArray().addString("WagooSmartGlasses"));
         doc.setArray("wAccelGyroData",new MutableArray(Arrays.asList(wagooPeriodSample.getWagooDataSupportMutableArray())));
 
+//        if(mAppExecutors.diskIO().isShutdown() || mAppExecutors.diskIO().isTerminated()){
+//            mAppExecutors.networkIO().shutdown();
+//            mAppExecutors=new AppExecutors();
+//        }
+
         mAppExecutors.diskIO().execute(new Runnable() {
             @Override
             public void run() {
@@ -273,6 +275,11 @@ public class DataMapper {
         MutableDocument doc = new MutableDocument(document_id);
         doc.setArray("Name", new MutableArray().addString("WagooSmartGlasses"));
         doc.setArray("wAccelGyroData",new MutableArray(Arrays.asList(wagooPeriodSample.getWagooDataMutableArray())));
+
+//        if(mAppExecutors.diskIO().isShutdown() || mAppExecutors.diskIO().isTerminated()){
+//            mAppExecutors.networkIO().shutdown();
+//            mAppExecutors=new AppExecutors();
+//        }
 
         mAppExecutors.diskIO().execute(new Runnable() {
             @Override
@@ -303,6 +310,11 @@ public class DataMapper {
                 .setArray("pAccellerometer", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneAccelerometerSupportMutableArray())))
                 .setArray("pGyroscope", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneGyroscopeSupportMutableArray())))
                 .setArray("pMagneto", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneMagnetoSupportMutableArray())));
+
+//        if(mAppExecutors.diskIO().isShutdown() || mAppExecutors.diskIO().isTerminated()){
+//            mAppExecutors.networkIO().shutdown();
+//            mAppExecutors=new AppExecutors();
+//        }
         mAppExecutors.diskIO().execute(new Runnable() {
             @Override
             public void run() {
@@ -325,7 +337,6 @@ public class DataMapper {
     }
 
     public void savePhoneLastPeriodSampleIntoDbLocal(PhonePeriodSample phonePeriodSample,String session_id){
-
         String document_id=session_id+"."+phonePeriodSample.getSubSessionCounter()+" - P";
         Log.d(TAG, "savePhonePeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument doc = new MutableDocument(document_id);
@@ -334,6 +345,11 @@ public class DataMapper {
                 .setArray("pAccellerometer", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneAccelerometerMutableArray())))
                 .setArray("pGyroscope", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneGyroscopeMutableArray())))
                 .setArray("pMagneto", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneMagnetoMutableArray())));
+
+//        if(mAppExecutors.diskIO().isShutdown() || mAppExecutors.diskIO().isTerminated()){
+//            mAppExecutors.networkIO().shutdown();
+//            mAppExecutors=new AppExecutors();
+//        }
 
         mAppExecutors.diskIO().execute(new Runnable() {
             @Override

@@ -1,7 +1,6 @@
 package com.example.progettogio.utils;
 
 import android.Manifest;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
@@ -13,6 +12,7 @@ import android.provider.Settings;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -49,7 +49,7 @@ public class Utils {
      * @return True if permission has been denied and the popup will not come up any more,
      * false otherwise.
      */
-    public static boolean isLocationPermissionDeniedForever(@NonNull final Activity activity) {
+    public static boolean isLocationPermissionDeniedForever(@NonNull final AppCompatActivity activity) {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
 
         return !isLocationPermissionsGranted(activity) // Location permission must be denied
@@ -105,7 +105,7 @@ public class Utils {
 
     /**
      * The first time an app requests a permission there is no 'Don't ask again' checkbox and
-     * {@link ActivityCompat#shouldShowRequestPermissionRationale(Activity, String)} returns false.
+     * {@link ActivityCompat#shouldShowRequestPermissionRationale(AppCompatActivity, String)} returns false.
      * This situation is similar to a permission being denied forever, so to distinguish both cases
      * a flag needs to be saved.
      *
@@ -121,7 +121,7 @@ public class Utils {
     }
 
 
-    public static void enableBle(Activity activity) {
+    public static void enableBle(AppCompatActivity activity) {
         final Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         activity.startActivityForResult(enableIntent, Utils.REQUEST_ENABLE_BT);
     }

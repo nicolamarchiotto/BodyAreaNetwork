@@ -173,8 +173,8 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
             mWagooGlassesInterface.unregister_collect_sensors_callback(wagooFunctionCallback);
             DataMapper.getInstance().saveWagooLastPeriodSampleIntoDbLocal(wagooPeriodSample,session_id);
         }
-//        DataMapper.getInstance().waitForPreviousFileToBeSaveAndStarReplication();
         DataMapper.getInstance().startReplication();
+//        DataMapper.getInstance().waitForPreviousFileToBeSaveAndStarReplication();
         super.onDestroy();
     }
 
@@ -234,7 +234,6 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         @Override
         public void onQuaternionValueChangedEvent(BluetoothDevice bluetoothDevice, float w, float x, float y, float z) {
             nordicHashMap.get(bluetoothDevice.getAddress()).addThingyQuaternionData(bluetoothDevice.getAddress(),w,x,y,z, new Timestamp(System.currentTimeMillis()));
-            Log.d(TAG, "onQuaternionValueChangedEvent: ");
         }
 
         @Override

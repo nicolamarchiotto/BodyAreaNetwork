@@ -1,6 +1,6 @@
 package com.wagoo.wgcom
 
-import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
@@ -253,7 +253,7 @@ class WagooGlassesInterface internal constructor(
         stop_request_version()
     }
 
-    fun firmware_update_online(activity: Activity?, url: String, progress: (Int, Int, Boolean) -> Unit) {
+    fun firmware_update_online(activity: AppCompatActivity?, url: String, progress: (Int, Int, Boolean) -> Unit) {
         thread {
             try {
                 val version_master_str = URL("$url/version_master").readText().trim()

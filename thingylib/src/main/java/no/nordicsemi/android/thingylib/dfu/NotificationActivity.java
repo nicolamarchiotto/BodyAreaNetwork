@@ -76,11 +76,12 @@
 
 package no.nordicsemi.android.thingylib.dfu;
 
-import android.app.Activity;
 import android.os.Bundle;
 
+import androidx.appcompat.app.AppCompatActivity;
 
-public class NotificationActivity extends Activity {
+
+public class NotificationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -1,9 +1,9 @@
 package com.example.progettogio.utils;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class PermissionUtils {
 
-    public static void askForPermissions(Activity activity) {
+    public static void askForPermissions(AppCompatActivity activity) {
 
         List<String> permissionsToAsk = new ArrayList<>();
         int requestResult = 0;

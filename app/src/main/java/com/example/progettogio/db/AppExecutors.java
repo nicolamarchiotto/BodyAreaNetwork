@@ -6,6 +6,7 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -14,23 +15,21 @@ import java.util.concurrent.Executors;
 public class AppExecutors {
 
 
-    private final Executor mDiskIO;
-    private final Executor mNetworkIO;
-    private final Executor mMainThread;
+    private final ExecutorService mDiskIO;
+    private final ExecutorService mNetworkIO;
 
     /**
      * new instance of AppExecutors
      */
     public AppExecutors() {
-        this(Executors.newFixedThreadPool(3), Executors.newFixedThreadPool(3),
-                new MainThreadExecutor());
+        this(Executors.newFixedThreadPool(3), Executors.newFixedThreadPool(3));
     }
 
     /**
      * get the Disk IO
      * @return disk IO
      */
-    public Executor diskIO() {
+    public ExecutorService diskIO() {
         return mDiskIO;
     }
 
@@ -38,23 +37,16 @@ public class AppExecutors {
      * get the Network IO
      * @return network IO
      */
-    public Executor networkIO() {
+    public ExecutorService networkIO() {
         return mNetworkIO;
     }
 
-    /**
-     * get the main thread
-     * @return main thread
-     */
-    public Executor mainThread() {
-        return mMainThread;
-    }
 
 
-    private AppExecutors(Executor diskIO, Executor networkIO, Executor mainThread) {
+    private AppExecutors(ExecutorService diskIO, ExecutorService networkIO) {
         this.mDiskIO = diskIO;
         this.mNetworkIO = networkIO;
-        this.mMainThread = mainThread;
+
     }
 
 

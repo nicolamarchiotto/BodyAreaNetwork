@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     private SoundVibrationThread mSoundVibrationThread;
     private Button soundVibrationButton;
+    private Button forcePushButton;
     private boolean soundVibrationLightsOn =false;
 
     /**
@@ -155,24 +156,37 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     private Boolean click=false;
 
+
+    private boolean replicationConnectingShowed=false;
+    private boolean replicationBusyShowed=false;
+
     @Override
     public void replicatorConnecting() {
-        Toast.makeText(this,"Connecting to remote database",Toast.LENGTH_SHORT).show();
+        if(!replicationConnectingShowed){
+            Toast.makeText(getApplicationContext(),"Connecting to remote database",Toast.LENGTH_SHORT).show();
+            replicationConnectingShowed=true;
+        }
     }
 
     @Override
     public void replicatorBusy() {
-//        Toast.makeText(this,"Replication started",Toast.LENGTH_SHORT).show();
+        if(!replicationBusyShowed){
+            Toast.makeText(getApplicationContext(),"Pushing documents to remote database",Toast.LENGTH_SHORT).show();
+            replicationBusyShowed=true;
+            replicationConnectingShowed=false;
+        }
     }
 
     @Override
     public void replicatorOffline() {
-        Toast.makeText(this,"Can't connect to remote database",Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(),"Can't connect to remote database",Toast.LENGTH_SHORT).show();
+        DataMapper.getInstance().stopReplication();
     }
 
     @Override
     public void replicatorStopped() {
-        Toast.makeText(this,"Replication stopped",Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"Stop pushing to remote database",Toast.LENGTH_SHORT).show();
+        replicationBusyShowed=false;
     }
 
     private class SmartWatchPingThread extends Thread{
@@ -205,6 +219,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
         //TODO: delete
         timestamp = new Timestamp(System.currentTimeMillis());
+
+
+//        Snackbar snackbar = Snackbar.make(coordinatorLayout,"prova", BaseTransientBottomBar.LENGTH_SHORT);
+//        snackbar.show();
 
         activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
@@ -291,9 +309,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 isScanning=true;
                 Toast.makeText(getApplicationContext(), "BLE scan started.", Toast.LENGTH_SHORT).show();
             }else {
-
                 stopScan();
                 isScanning=false;
+                scanDevicesList.clear();
+                devicesScanAdapters.notifyDataSetChanged();
                 Toast.makeText(getApplicationContext(), "BLE scan stopped.", Toast.LENGTH_SHORT).show();
             }
         });
@@ -334,43 +353,50 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             }
         });
 
-        //TODO: delete
-        soundVibrationButton=activityMainBinding.vibrationButton;
-        soundVibrationButton.setOnClickListener(new View.OnClickListener() {
+        forcePushButton=activityMainBinding.pushButton;
+        forcePushButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DataMapper.getInstance().setReplicator();
                 DataMapper.getInstance().startReplication();
-
-//                if(soundVibrationLightsOn){
-//                    soundVibrationLightsOn =false;
-//                    mSoundVibrationThread.end();
-//                    if(wagooGlassesInterface.isConnected()){
-//                        wagooGlassesInterface.set_lights(0.0f, 0,false,false,false);
-//                    }
-//                    if(smartWatchConnected){
-//                        for (Node node : nodes)
-//                            Wearable.getMessageClient(getApplicationContext()).sendMessage(
-//                                    node.getId(), "/stop", "STOP".getBytes());
-//                    }
-//                }
-//                else{
-//                    soundVibrationLightsOn =true;
-//                    if(smartWatchConnected){
-//                        if (nodes != null) {
-//                            for (Node node : nodes)
-//                                Wearable.getMessageClient(getApplicationContext()).sendMessage(
-//                                        node.getId(), "/vibration", "30".getBytes());
-//                        }
-//                    }
-//                    if(wagooGlassesInterface.isConnected()){
-//                        wagooGlassesInterface.set_lights(1.0f,1000,true,true,true);
-//                    }
-//                    mSoundVibrationThread = new SoundVibrationThread(getApplicationContext(), true, true, 30);
-//                    mSoundVibrationThread.start();
-//                }
             }
         });
+
+
+//        soundVibrationButton=activityMainBinding.vibrationButton;
+//        soundVibrationButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+////                if(soundVibrationLightsOn){
+////                    soundVibrationLightsOn =false;
+////                    mSoundVibrationThread.end();
+////                    if(wagooGlassesInterface.isConnected()){
+////                        wagooGlassesInterface.set_lights(0.0f, 0,false,false,false);
+////                    }
+////                    if(smartWatchConnected){
+////                        for (Node node : nodes)
+////                            Wearable.getMessageClient(getApplicationContext()).sendMessage(
+////                                    node.getId(), "/stop", "STOP".getBytes());
+////                    }
+////                }
+////                else{
+////                    soundVibrationLightsOn =true;
+////                    if(smartWatchConnected){
+////                        if (nodes != null) {
+////                            for (Node node : nodes)
+////                                Wearable.getMessageClient(getApplicationContext()).sendMessage(
+////                                        node.getId(), "/vibration", "30".getBytes());
+////                        }
+////                    }
+////                    if(wagooGlassesInterface.isConnected()){
+////                        wagooGlassesInterface.set_lights(1.0f,1000,true,true,true);
+////                    }
+////                    mSoundVibrationThread = new SoundVibrationThread(getApplicationContext(), true, true, 30);
+////                    mSoundVibrationThread.start();
+////                }
+//            }
+//        });
 
         searchAndConnectSmartWatch=pref.getBoolean("smartwatch",true);
         if(searchAndConnectSmartWatch){
@@ -968,17 +994,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
             //When DataCollection stopped the replication doesn't push all the files,
             // starting the replication after 10s for pushing them
-            Thread thread= new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        sleep(10000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    DataMapper.getInstance().startReplication();
-                }
-            };
         }
     }
 

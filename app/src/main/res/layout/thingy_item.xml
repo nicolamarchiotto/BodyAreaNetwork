@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
     <data></data>
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/device_container"
         android:layout_width="match_parent"
@@ -10,7 +9,6 @@
         android:animateLayoutChanges="true"
         android:background="@android:color/white"
         android:layout_margin="5dp"
-        android:padding="16dp"
         android:paddingTop="6dp"
         android:paddingRight="6dp"
         android:paddingBottom="6dp">
@@ -21,7 +19,7 @@
             android:layout_height="27dp"
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
-            android:src="@drawable/ic_thingy_gray"
+            app:srcCompat="@drawable/ic_thingy_gray"
             tools:ignore="contentDescription" />
 
         <TextView
