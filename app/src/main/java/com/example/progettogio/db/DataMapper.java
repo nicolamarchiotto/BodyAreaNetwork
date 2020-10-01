@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.couchbase.lite.CouchbaseLite;
 import com.couchbase.lite.CouchbaseLiteException;
@@ -114,7 +113,7 @@ public class DataMapper {
         //controllo quali dati il replicator sta caricando su db remoto.
         replicator.addDocumentReplicationListener(replication -> {
             for (ReplicatedDocument document : replication.getDocuments()) {
-                Toast.makeText(mContext, "Uploaded "+ document.getID()+" to database", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(mContext, "Uploaded "+ document.getID()+" to database", Toast.LENGTH_SHORT).show();
                 try {
                     Log.d(TAG, "Purging document "+document.getID());
                     mDatabase.purge(document.getID());
@@ -195,7 +194,7 @@ public class DataMapper {
             }
         });
         Log.d(TAG, "saving phonePeriodSample into local db: "+newDoc.getId());
-        Toast.makeText(mContext,"Saving "+newDoc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
+//        Toast.makeText(mContext,"Saving "+newDoc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
     }
 
 
@@ -234,7 +233,7 @@ public class DataMapper {
             }
         });
         Log.d(TAG, "saving phonePeriodSample into local db: "+newDoc.getId());
-        Toast.makeText(mContext,"Saving "+newDoc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
+//        Toast.makeText(mContext,"Saving "+newDoc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
     }
 
     public void saveWagooPeriodSampleIntoDbLocal(WagooPeriodSample wagooPeriodSample,String session_id, int subSession){
@@ -266,7 +265,7 @@ public class DataMapper {
             }
         });
         Log.d(TAG, "saving phonePeriodSample into local db: "+doc.getId());
-        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
+//        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
     }
 
     public void saveWagooLastPeriodSampleIntoDbLocal(WagooPeriodSample wagooPeriodSample,String session_id){
@@ -298,7 +297,7 @@ public class DataMapper {
             }
         });
         Log.d(TAG, "saving phonePeriodSample into local db: "+doc.getId());
-        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
+//        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
     }
 
     public void savePhonePeriodSampleIntoDbLocal(PhonePeriodSample phonePeriodSample,String session_id, int subSession){
@@ -333,7 +332,7 @@ public class DataMapper {
             }
         });
         Log.d(TAG, "saving phonePeriodSample into local db: "+doc.getId());
-        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
+//        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
     }
 
     public void savePhoneLastPeriodSampleIntoDbLocal(PhonePeriodSample phonePeriodSample,String session_id){
@@ -367,7 +366,7 @@ public class DataMapper {
             }
         });
         Log.d(TAG, "saving phonePeriodSample into local db: "+doc.getId());
-        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
+//        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
     }
 
     /**
