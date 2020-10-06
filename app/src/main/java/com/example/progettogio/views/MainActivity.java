@@ -825,6 +825,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                         phone_vibration= split[6].equals("1");
                         watch_vibration= split[7].equals("1");
                         wagoo_lights= split[6].equals("1");
+//                        phone_sound=true;
+//                        phone_vibration=true;
+//                        watch_vibration=true;
+//                        wagoo_lights=true;
                         break;
                     case "2":
                         Log.d(TAG, "onReceive: startDataCollection");
