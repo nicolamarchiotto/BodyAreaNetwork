@@ -811,10 +811,6 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                             availableDevices+="_1";
                         else
                             availableDevices+="_0";
-
-                        String c=availableDevices;
-                        Log.d(TAG, "onReceive: "+availableDevices);
-
                         mBluetoothConnectionService.write((availableDevices).getBytes());
                         if(waitingDialogFragment!=null){
                             waitingDialogFragment.dismiss();
@@ -851,6 +847,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                             sessionOngoingDialogFragment.dismiss();
                             mBluetoothConnectionService.closeConnectedThread();
                         }
+                        if(readySwitch.isChecked())
+                            readySwitch.setChecked(false);
                         break;
                 }
             }

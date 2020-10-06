@@ -74,9 +74,15 @@
             <Button
                 android:id="@+id/push_button"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Push Data"
-                android:layout_weight="1" />
+                android:textStyle="normal"
+                android:background="@drawable/roundedbutton"
+                android:textColor="@color/white"
+                android:layout_weight="1"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"
+                />
             <Space
                 android:layout_width="0dp"
                 android:layout_height="1dp"
