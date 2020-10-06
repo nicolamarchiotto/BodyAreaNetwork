@@ -26,7 +26,7 @@
             android:title="Phone Sensors"
             android:icon="@drawable/phone_icon"/>
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="smartwatch"
             android:title="Enable Smartwatch Vibration"
             android:summary="Search And Connect To Smartwatch"

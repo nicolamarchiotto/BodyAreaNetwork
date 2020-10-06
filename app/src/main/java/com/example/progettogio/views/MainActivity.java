@@ -81,8 +81,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private ActivityMainBinding activityMainBinding;
 
     private Switch scanSwitch;
-    private Switch collectionSwitch;
     private Switch readySwitch;
+//    private Switch collectionSwitch;
 
     //Nordic stuff
     private ThingySdkManager thingySdkManager;
@@ -318,33 +318,28 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         });
 
 
-        //TODO: delete
-        collectionSwitch=activityMainBinding.collectionSwitch;
-        collectionSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Log.d(TAG, "collectionswitch listener called: ");
-            if (isChecked){
-                if(thingySdkManager.getConnectedDevices().size()==0 && !wagooGlassesInterface.isConnected() && !smartWatchConnected){
-                    Toast.makeText(getApplicationContext(),"You have to connect at least one device before starting the data collection", Toast.LENGTH_SHORT).show();
-                    buttonView.setChecked(false);
-                }
-                else{
-                    startDataCollection();
-                }
-            }else {
-                stopDataCollection();
-            }
-        });
+//        //TODO: delete
+//        collectionSwitch=activityMainBinding.collectionSwitch;
+//        collectionSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            Log.d(TAG, "collectionswitch listener called: ");
+//            if (isChecked){
+//                if(thingySdkManager.getConnectedDevices().size()==0 && !wagooGlassesInterface.isConnected() && !smartWatchConnected){
+//                    Toast.makeText(getApplicationContext(),"You have to connect at least one device before starting the data collection", Toast.LENGTH_SHORT).show();
+//                    buttonView.setChecked(false);
+//                }
+//                else{
+//                    startDataCollection();
+//                }
+//            }else {
+//                stopDataCollection();
+//            }
+//        });
 
         readySwitch=activityMainBinding.readySwitch;
         readySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Log.d(TAG, "readySwitch listener called: ");
             if(isChecked){
-                if(thingySdkManager.getConnectedDevices().size()==0 && !wagooGlassesInterface.isConnected() && !smartWatchConnected){
-                    Toast.makeText(getApplicationContext(),"You have to connect at least one device before starting the data collection", Toast.LENGTH_SHORT).show();
-                    buttonView.setChecked(false);
-                }
-                else
-                    bluetoothEnableDiscoverability();
+                bluetoothEnableDiscoverability();
             }
             else{
                 bluetoothDisableDiscoverability();
@@ -446,12 +441,13 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
 
         if(isCollectingData)
             stopDataCollection();
         if(soundVibrationLightsOn)
             stopDeviceOutput();
+
+        bluetoothDisableDiscoverability();
 
         thingySdkManager.disconnectFromAllThingies();
 
@@ -463,6 +459,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             mBluetoothConnectionService.closeAcceptThread();
             mBluetoothConnectionService.closeConnectedThread();
         }
+
+        super.onDestroy();
     }
 
     @Override
@@ -505,6 +503,9 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 readySwitch.setChecked(false);
             }
             if(resultCode==300){
+                if(isScanning){
+                    stopScan();
+                }
                 mBluetoothConnectionService=new BluetoothConnectionService(this);
                 showWaitingForDoctorDialogFragment();
             }
@@ -810,6 +811,10 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                             availableDevices+="_1";
                         else
                             availableDevices+="_0";
+
+                        String c=availableDevices;
+                        Log.d(TAG, "onReceive: "+availableDevices);
+
                         mBluetoothConnectionService.write((availableDevices).getBytes());
                         if(waitingDialogFragment!=null){
                             waitingDialogFragment.dismiss();
@@ -966,8 +971,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             Log.d(TAG, "startDataCollection: wagooGlasses Connected: "+wagooGlassesInterface.isConnected());
 
             Intent beaconDiscoveryService = new Intent(this, DataCollectionService.class);
-            String id=timestamp+" session:"+session_id_integer;
-            //String id=patient_id+session_id;
+//            String id=timestamp+" session:"+session_id_integer;
+            String id=patient_id+session_id;
             Log.d(TAG, "startDataCollection: "+id);
 
             beaconDiscoveryService.putExtra("SESSION_ID",id);
