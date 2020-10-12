@@ -194,6 +194,7 @@ internal class WagooBleManager(val context: Context,
                             connect(true)
                             this.cancel()
                         }
+                        status = BLEStatus.DISCONNECTED
                     }
                 }.join()
             }
