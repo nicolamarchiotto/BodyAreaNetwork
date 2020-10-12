@@ -32,7 +32,6 @@ public class BluetoothConnectionService {
     Context mContext;
 
     private AcceptThread mInsecureAcceptThread;
-    private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
 
     private BluetoothDevice mmDevice;
@@ -51,10 +50,6 @@ public class BluetoothConnectionService {
     public synchronized void start() {
         Log.d(TAG, "start");
         // Cancel any thread attempting to make a connection
-        if (mConnectThread != null) {
-            mConnectThread.cancel();
-            mConnectThread = null;
-        }
         if (mInsecureAcceptThread == null) {
             mInsecureAcceptThread = new AcceptThread();
             mInsecureAcceptThread.start();
@@ -65,12 +60,12 @@ public class BluetoothConnectionService {
      Then ConnectThread starts and attempts to make a connection with the other devices AcceptThread.
      **/
 
-    public void startClient(BluetoothDevice device,UUID uuid){
-        Log.d(TAG, "startClient: Started.");
-
-        mConnectThread = new ConnectThread(device, uuid);
-        mConnectThread.start();
-    }
+//    public void startClient(BluetoothDevice device,UUID uuid){
+//        Log.d(TAG, "startClient: Started.");
+//
+//        mConnectThread = new ConnectThread(device, uuid);
+//        mConnectThread.start();
+//    }
 
     public void closeAcceptThread(){
         if(!(mInsecureAcceptThread ==null))
@@ -80,6 +75,7 @@ public class BluetoothConnectionService {
     public void closeConnectedThread(){
         if(!(mConnectedThread ==null)){
             mConnectedThread.cancel();
+            mConnectedThread.interrupt();
         }
     }
 
@@ -90,6 +86,7 @@ public class BluetoothConnectionService {
         // Start the thread to manage the connection and perform transmissions
         mConnectedThread = new ConnectedThread(mmSocket);
         mConnectedThread.start();
+
     }
 
     /**
@@ -149,7 +146,6 @@ public class BluetoothConnectionService {
             if(socket != null){
                 connected(socket);
             }
-            cancel();
             Log.i(TAG, "END mAcceptThread ");
         }
 
@@ -169,65 +165,65 @@ public class BluetoothConnectionService {
      * with a device. It runs straight through; the connection either
      * succeeds or fails.
      */
-    private class ConnectThread extends Thread {
-        private BluetoothSocket mmSocket;
-
-        public ConnectThread(BluetoothDevice device, UUID uuid) {
-            Log.d(TAG, "ConnectThread: started.");
-            mmDevice = device;
-            deviceUUID = uuid;
-        }
-
-        public void run(){
-            BluetoothSocket tmp = null;
-            Log.i(TAG, "RUN mConnectThread ");
-
-            // Get a BluetoothSocket for a connection with the
-            // given BluetoothDevice
-            try {
-                Log.d(TAG, "ConnectThread: Trying to create InsecureRfcommSocket using UUID: "
-                        +MY_UUID_INSECURE );
-                tmp = mmDevice.createRfcommSocketToServiceRecord(deviceUUID);
-            } catch (IOException e) {
-                Log.e(TAG, "ConnectThread: Could not create InsecureRfcommSocket " + e.getMessage());
-            }
-
-            mmSocket = tmp;
-
-            // Always cancel discovery because it will slow down a connection
-            mBluetoothAdapter.cancelDiscovery();
-
-            // Make a connection to the BluetoothSocket
-
-            try {
-                // This is a blocking call and will only return on a
-                // successful connection or an exception
-                mmSocket.connect();
-
-                Log.d(TAG, "run: ConnectThread connected.");
-            } catch (IOException e) {
-                // Close the socket
-                try {
-                    mmSocket.close();
-                    Log.d(TAG, "run: Closed Socket.");
-                } catch (IOException e1) {
-                    Log.e(TAG, "mConnectThread: run: Unable to close connection in socket " + e1.getMessage());
-                }
-                Log.d(TAG, "run: ConnectThread: Could not connect to UUID: " + MY_UUID_INSECURE );
-            }
-
-            //will talk about this in the 3rd video
-            connected(mmSocket);
-        }
-        public void cancel() {
-            try {
-                Log.d(TAG, "cancel: Closing Client Socket.");
-                mmSocket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "cancel: close() of mmSocket in Connectthread failed. " + e.getMessage());
-            }
-        }
-    }
+//    private class ConnectThread extends Thread {
+//        private BluetoothSocket mmSocket;
+//
+//        public ConnectThread(BluetoothDevice device, UUID uuid) {
+//            Log.d(TAG, "ConnectThread: started.");
+//            mmDevice = device;
+//            deviceUUID = uuid;
+//        }
+//
+//        public void run(){
+//            BluetoothSocket tmp = null;
+//            Log.i(TAG, "RUN mConnectThread ");
+//
+//            // Get a BluetoothSocket for a connection with the
+//            // given BluetoothDevice
+//            try {
+//                Log.d(TAG, "ConnectThread: Trying to create InsecureRfcommSocket using UUID: "
+//                        +MY_UUID_INSECURE );
+//                tmp = mmDevice.createRfcommSocketToServiceRecord(deviceUUID);
+//            } catch (IOException e) {
+//                Log.e(TAG, "ConnectThread: Could not create InsecureRfcommSocket " + e.getMessage());
+//            }
+//
+//            mmSocket = tmp;
+//
+//            // Always cancel discovery because it will slow down a connection
+//            mBluetoothAdapter.cancelDiscovery();
+//
+//            // Make a connection to the BluetoothSocket
+//
+//            try {
+//                // This is a blocking call and will only return on a
+//                // successful connection or an exception
+//                mmSocket.connect();
+//
+//                Log.d(TAG, "run: ConnectThread connected.");
+//            } catch (IOException e) {
+//                // Close the socket
+//                try {
+//                    mmSocket.close();
+//                    Log.d(TAG, "run: Closed Socket.");
+//                } catch (IOException e1) {
+//                    Log.e(TAG, "mConnectThread: run: Unable to close connection in socket " + e1.getMessage());
+//                }
+//                Log.d(TAG, "run: ConnectThread: Could not connect to UUID: " + MY_UUID_INSECURE );
+//            }
+//
+//            //will talk about this in the 3rd video
+//            connected(mmSocket);
+//        }
+//        public void cancel() {
+//            try {
+//                Log.d(TAG, "cancel: Closing Client Socket.");
+//                mmSocket.close();
+//            } catch (IOException e) {
+//                Log.e(TAG, "cancel: close() of mmSocket in Connectthread failed. " + e.getMessage());
+//            }
+//        }
+//    }
 
 
     /**
@@ -273,15 +269,28 @@ public class BluetoothConnectionService {
                     bytes = mmInStream.read(buffer);
                     String incomingMessage = new String(buffer, 0, bytes);
                     Log.d(TAG, "InputStream: " + incomingMessage);
+                    if(incomingMessage.equals("56")){
+                        Intent fiveMessageIntent=new Intent("incomingMessage");
+                        fiveMessageIntent.putExtra("theMessage","5");
+                        sleep(1000);
+                        LocalBroadcastManager.getInstance(mContext).sendBroadcast(fiveMessageIntent);
+                        Intent sixMessageIntent=new Intent("incomingMessage");
+                        sixMessageIntent.putExtra("theMessage","6");
+                        LocalBroadcastManager.getInstance(mContext).sendBroadcast(sixMessageIntent);
+                    }
+                    else{
+                        incomingMessage="connectedThreadCommunication_"+incomingMessage;
 
-                    incomingMessage="connectedThreadCommunication_"+incomingMessage;
+                        Intent incomingMessageIntent=new Intent("incomingMessage");
+                        incomingMessageIntent.putExtra("theMessage",incomingMessage);
+                        LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
+                    }
 
+                } catch (IOException | InterruptedException e) {
+                    Log.e(TAG, "read: Error reading Input Stream: " + e.getMessage() );
                     Intent incomingMessageIntent=new Intent("incomingMessage");
-                    incomingMessageIntent.putExtra("theMessage",incomingMessage);
+                    incomingMessageIntent.putExtra("theMessage","connectedThreadCommunication_connectedThreadClosed");
                     LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
-
-                } catch (IOException e) {
-                    Log.e(TAG, "write: Error reading Input Stream. " + e.getMessage() );
                     break;
                 }
             }
@@ -308,7 +317,6 @@ public class BluetoothConnectionService {
 
     public void write(byte[] out) {
         // Create temporary object
-        ConnectedThread r;
 
         // Synchronize a copy of the ConnectedThread
         Log.d(TAG, "write: Write Called.");

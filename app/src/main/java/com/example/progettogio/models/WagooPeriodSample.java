@@ -38,12 +38,13 @@ public class WagooPeriodSample {
         dictionary.setString("TimeStamp",timestamp.toString());
         try {
             wagooDataMutableArray[wagooDataIndex]=dictionary;
-            wagooDataIndex=1;
+            wagooDataIndex+=1;
         }
         catch (ArrayIndexOutOfBoundsException e){
             Log.d(TAG, "addDataEntry: ArrayIndexOutOfBoundsException");
             doSubsection();
         }
+        Log.d(TAG, "addDataEntry: ");
 
     }
 

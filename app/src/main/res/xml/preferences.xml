@@ -29,7 +29,7 @@
             android:defaultValue="true"
             android:key="smartwatch"
             android:title="Enable Smartwatch Vibration"
-            android:summary="Search And Connect To Smartwatch"
+            android:summary="Use Smartwatch if already paired"
             android:icon="@drawable/ic_watch_black_24dp"/>
         <EditTextPreference
             android:key="motion_frequency_thingy"

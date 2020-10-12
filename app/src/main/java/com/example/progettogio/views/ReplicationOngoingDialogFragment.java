@@ -11,19 +11,17 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.progettogio.R;
 
-public class SessionOngoingDialogFragment extends DialogFragment {
+public class ReplicationOngoingDialogFragment extends DialogFragment {
 
-    public interface SessionOngoingDialogListener {
-        public void onSessionOngoingDialogPositiveClick();
-        public void onSessionOngoingDialogNegativeClick();
+    public interface ReplicationOngoingDialogListener{
+        public void onReplicationOngoingDialogPositiveClick();
     }
 
-    private SessionOngoingDialogListener mListener;
+    private ReplicationOngoingDialogListener mListener;
 
-    public SessionOngoingDialogFragment(SessionOngoingDialogListener listener) {
-        this.mListener = listener;
+    public ReplicationOngoingDialogFragment(ReplicationOngoingDialogListener listener){
+        mListener=listener;
     }
-
 
     @NonNull
     @Override
@@ -35,11 +33,11 @@ public class SessionOngoingDialogFragment extends DialogFragment {
 
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the dialog layout
-        builder.setView(inflater.inflate(R.layout.dialog_ongoing_session, null))
+        builder.setView(inflater.inflate(R.layout.dialog_ongoing_replication, null))
                 // Add action buttons
                 .setNegativeButton("Force close", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        mListener.onSessionOngoingDialogPositiveClick();
+                        mListener.onReplicationOngoingDialogPositiveClick();
                         dismiss();
                     }
                 });

@@ -40,7 +40,7 @@
 
         <activity android:name=".views.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:label="Thingy Server">
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -52,6 +52,7 @@
 
         <service android:name=".services.ThingyService" />
         <service android:name=".services.DataCollectionService"/>
+        <service android:name=".services.ClosingService" android:stopWithTask="false"/>
     </application>
 </manifest>
 

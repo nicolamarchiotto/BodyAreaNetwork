@@ -12,7 +12,7 @@
         android:layout_centerVertical="true"/>
     <TextView
         android:id="@+id/waiting_text_view"
-        android:text="Doctor phone successfully connected \nWaiting for doctor to stop session..."
+        android:text="Pushing document to remote database\nDon't close the application"
         android:textStyle="bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

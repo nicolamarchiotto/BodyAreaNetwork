@@ -16,7 +16,6 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.example.progettogio.R;
 import com.example.progettogio.db.DataMapper;
 import com.example.progettogio.interfaces.SubSectionCallback;
 import com.example.progettogio.models.NordicPeriodSample;
@@ -62,6 +61,10 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
 
     private int ARRAYDIMENSION=1000;
 
+    private Boolean firstWagooData=true;
+    private long tempoDaQunadoAccesoWagoo=0;
+    private long timeStampCorrispettivoATempoAccensioneWaggo=0;
+
 
 
 
@@ -95,8 +98,14 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         }
 
         wagooFunctionCallback=(accelGyroInfo) -> {
+            if(firstWagooData){
+                tempoDaQunadoAccesoWagoo=accelGyroInfo.getTimestamp()/16000;
+                timeStampCorrispettivoATempoAccensioneWaggo=System.currentTimeMillis();
+                firstWagooData=false;
+            }
             wagooPeriodSample.addDataEntry(accelGyroInfo.getAccl().getX(),accelGyroInfo.getAccl().getY(),accelGyroInfo.getAccl().getZ(),
-                    accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getRoll(),new Timestamp(System.currentTimeMillis()));
+                    accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getPitch(),accelGyroInfo.getGyro().getRoll(),new Timestamp(timeStampCorrispettivoATempoAccensioneWaggo-tempoDaQunadoAccesoWagoo+(accelGyroInfo.getTimestamp()/16000)));
+
 
             Log.d(TAG, "wagooFunctionCallback: called");
             return Unit.INSTANCE;
@@ -120,8 +129,8 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
             wagooPeriodSample=new WagooPeriodSample(this,ARRAYDIMENSION);
         }
 
-        DataMapper.getInstance().setReplicator();
-        setNotification("Data collecting", "Running");
+//        DataMapper.getInstance().setReplicator();
+        setNotification("", "");
         return Service.START_STICKY;
     }
 
@@ -133,7 +142,6 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         Notification notification = new NotificationCompat.Builder(this, "misc")
                 .setContentTitle(title)
                 .setContentText(descr)
-                .setSmallIcon(R.drawable.ic_thingy_gray)
                 .setContentIntent(pendingIntent)
                 .build();
 
@@ -173,10 +181,11 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
             mWagooGlassesInterface.unregister_collect_sensors_callback(wagooFunctionCallback);
             DataMapper.getInstance().saveWagooLastPeriodSampleIntoDbLocal(wagooPeriodSample,session_id);
         }
-        DataMapper.getInstance().startReplication();
+//        DataMapper.getInstance().startReplication();
 //        DataMapper.getInstance().waitForPreviousFileToBeSaveAndStarReplication();
         super.onDestroy();
     }
+
 
 
     private final ThingyListener thingyListener = new ThingyListener() {

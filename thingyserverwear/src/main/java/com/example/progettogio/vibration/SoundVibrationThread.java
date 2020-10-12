@@ -31,18 +31,6 @@ public class SoundVibrationThread extends Thread {
         mMetronome.stop();
     }
 
-    public void setBpm(int bpm){
-        this.mBpm=bpm;
-        mMetronome.setBpm(bpm);
-    }
-
-//    public void riprendi(int bpm){
-//        mMetronome.setBpm(bpm);
-//        mMetronome.play();
-//    }
-//    public void pausa(){
-//        mMetronome.stop();
-//    }
 }
 
 

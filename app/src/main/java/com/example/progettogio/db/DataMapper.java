@@ -265,7 +265,6 @@ public class DataMapper {
             }
         });
         Log.d(TAG, "saving phonePeriodSample into local db: "+doc.getId());
-//        Toast.makeText(mContext,"Saving "+doc.getId()+" in local DB",Toast.LENGTH_SHORT).show();
     }
 
     public void saveWagooLastPeriodSampleIntoDbLocal(WagooPeriodSample wagooPeriodSample,String session_id){

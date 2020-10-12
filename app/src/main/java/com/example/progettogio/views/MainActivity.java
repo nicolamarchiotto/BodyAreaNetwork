@@ -39,6 +39,7 @@ import com.example.progettogio.interfaces.ReplicationCallback;
 import com.example.progettogio.models.GeneralDevice;
 import com.example.progettogio.models.Scanner_BTLE;
 import com.example.progettogio.services.BluetoothConnectionService;
+import com.example.progettogio.services.ClosingService;
 import com.example.progettogio.services.DataCollectionService;
 import com.example.progettogio.services.ThingyService;
 import com.example.progettogio.sound_vibration.SoundVibrationThread;
@@ -73,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         DevsSelectedListener,
         WaitingForDoctorDialogFragment.WaitingDialogListener,
         ChangeThingyNameDialogFragment.ChangeThingyNameListener,
+        SessionOngoingDialogFragment.SessionOngoingDialogListener,
+        ReplicationOngoingDialogFragment.ReplicationOngoingDialogListener,
         ReplicationCallback {
 
 
@@ -102,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private List<GeneralDevice> scanDevicesList = new ArrayList<>();
     private RecyclerView scanRecyclerView;
     private DevicesScanAdapters devicesScanAdapters;
+    private boolean waitForDeviceConnectedDisconnected=false;
 
     //selected devs list
     private List<GeneralDevice> selectedDeviceList = new ArrayList<>();
@@ -128,9 +132,12 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     //wear
     private Set<Node> nodes;
+    private ArrayList nodeIds;
     private boolean searchAndConnectSmartWatch;
     private boolean smartWatchConnected=false;
     private SmartWatchPingThread smartWatchPingThread;
+
+    private boolean glassesConnected=false;
 
     private static final int REQUEST_CODE_SETTINGS_CLICKED=0;
     private static final int REQUEST_DISCOVERABILITY=1;
@@ -138,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     private DialogFragment waitingDialogFragment;
     private DialogFragment sessionOngoingDialogFragment;
+    private DialogFragment replicationOngoingDialogFragment=null;
     private ChangeThingyNameDialogFragment changeThingyNameDialogFragment;
 
 
@@ -154,11 +162,11 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private Boolean watch_vibration=false;
     private Boolean wagoo_lights=false;
 
-    private Boolean click=false;
-
-
     private boolean replicationConnectingShowed=false;
     private boolean replicationBusyShowed=false;
+
+    private boolean activityStopped=false;
+    private boolean closeConnectionAndDialogOnResume=false;
 
     @Override
     public void replicatorConnecting() {
@@ -171,7 +179,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     @Override
     public void replicatorBusy() {
         if(!replicationBusyShowed){
-            Toast.makeText(getApplicationContext(),"Pushing documents to remote database",Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getApplicationContext(),"Pushing documents to remote database",Toast.LENGTH_SHORT).show();
+            showReplicationOngoingDialogFragment();
             replicationBusyShowed=true;
             replicationConnectingShowed=false;
         }
@@ -185,8 +194,35 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     @Override
     public void replicatorStopped() {
-        Toast.makeText(this,"Stop pushing to remote database",Toast.LENGTH_SHORT).show();
+        if(replicationOngoingDialogFragment!=null){
+            replicationOngoingDialogFragment.dismiss();
+            replicationOngoingDialogFragment=null;
+        }
+        Toast.makeText(this,"Stopped pushing to remote database",Toast.LENGTH_SHORT).show();
         replicationBusyShowed=false;
+    }
+
+    @Override
+    public void onSessionOngoingDialogPositiveClick() {
+        if(isCollectingData)
+            stopDataCollection();
+        if(mBluetoothConnectionService!=null)
+            mBluetoothConnectionService.closeConnectedThread();
+        if(readySwitch.isChecked())
+            readySwitch.setChecked(false);
+    }
+
+    @Override
+    public void onSessionOngoingDialogNegativeClick() {
+        //not used
+    }
+
+    @Override
+    public void onReplicationOngoingDialogPositiveClick() {
+        if(replicationOngoingDialogFragment!=null){
+            replicationOngoingDialogFragment.dismiss();
+            DataMapper.getInstance().stopReplication();
+        }
     }
 
     private class SmartWatchPingThread extends Thread{
@@ -200,26 +236,22 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                                 node.getId(), "/ping", "PING".getBytes());
                 }
                 try {
-                    sleep(2000);
+                    sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    Log.d(TAG, "run: interrupted");
                     return;
                 }
             }
         }
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate: "+timestamp);
 
         PermissionUtils.askForPermissions(this);
-
-        //TODO: delete
-        timestamp = new Timestamp(System.currentTimeMillis());
-
+        timestamp= new Timestamp(System.currentTimeMillis());
 
 //        Snackbar snackbar = Snackbar.make(coordinatorLayout,"prova", BaseTransientBottomBar.LENGTH_SHORT);
 //        snackbar.show();
@@ -247,12 +279,16 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
                     @Override
                     public void onDisconnected(WagooGlassesInterface wagooInterface) {
-                        wagooGlassesInterface.disable_collect_mode();
-                        wagooGlassesInterface.set_lights(0.0f,0,false,false,false);
-                        Log.d(TAG, "onDisconnected: Wagoo glasses disconnected");
-                        Intent messageToActivityIntent=new Intent("incomingMessage");
-                        messageToActivityIntent.putExtra("theMessage","wagooglassesdisconnected");
-                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageToActivityIntent);
+                        if(waitForDeviceConnectedDisconnected)
+                            waitForDeviceConnectedDisconnected=false;
+                        if(glassesConnected){
+                            glassesConnected=false;
+                            Log.d(TAG, "onDisconnected: Wagoo glasses disconnected");
+                            Intent messageToActivityIntent=new Intent("incomingMessage");
+                            messageToActivityIntent.putExtra("theMessage","wagooglassesdisconnected");
+                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageToActivityIntent);
+                            Log.d(TAG, "onDisconnected: Wagoo Disconnected");
+                        }
                     }
 
                     @Override
@@ -262,10 +298,15 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
                     @Override
                     public void onConnected(WagooGlassesInterface wagooInterface) {
-                        Log.d(TAG, "onConnected: Wagoo glasses connected ");
-                        Intent messageToActivityIntent=new Intent("incomingMessage");
-                        messageToActivityIntent.putExtra("theMessage","wagooglassesconnected");
-                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageToActivityIntent);
+                        if(waitForDeviceConnectedDisconnected)
+                            waitForDeviceConnectedDisconnected=false;
+                        if(!glassesConnected){
+                            glassesConnected=true;
+                            Log.d(TAG, "onConnected: Wagoo glasses connected ");
+                            Intent messageToActivityIntent=new Intent("incomingMessage");
+                            messageToActivityIntent.putExtra("theMessage","wagooglassesconnected");
+                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageToActivityIntent);
+                        }
                     }
 
                     @Override
@@ -398,10 +439,12 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             connectToWearable();
         }
 
+        Intent closingService=new Intent(this, ClosingService.class);
+        startForegroundService(closingService);
+
         DataMapper.getInstance().setContext(getApplicationContext(),this);
 
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -430,6 +473,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     protected void onStart() {
         super.onStart();
 
+
+
         //thingy service
         thingySdkManager.bindService(this, ThingyService.class);
 
@@ -452,27 +497,51 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         thingySdkManager.disconnectFromAllThingies();
 
         if (wagooGlassesInterface.isConnected()){
-//            wagooGlassesInterface.set_lights(0.0f,0,false,false,false);
             wagooGlassesInterface.disconnect();
         }
+
         if(!(mBluetoothConnectionService ==null)){
             mBluetoothConnectionService.closeAcceptThread();
             mBluetoothConnectionService.closeConnectedThread();
         }
 
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
+
         super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        activityStopped=false;
+        if(closeConnectionAndDialogOnResume){
+            if(sessionOngoingDialogFragment!=null){
+                sessionOngoingDialogFragment.dismiss();
+                mBluetoothConnectionService.closeConnectedThread();
+            }
+            if(readySwitch.isChecked())
+                readySwitch.setChecked(false);
+            closeConnectionAndDialogOnResume=false;
+        }
+        devicesScanAdapters.notifyDataSetChanged();
+        devicesSelectedAdapters.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        activityStopped=true;
 
         //thingy service
         thingySdkManager.unbindService(this);
 
         //thingy listener
 //        ThingyListenerHelper.unregisterThingyListener(this, thingyListener);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
 
         //stop scan
         stopScan();
@@ -489,7 +558,13 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                 return;
             }
             if(!searchAndConnectSmartWatch){
+                if(smartWatchConnected){
+                    for (Node node : nodes)
+                        Wearable.getMessageClient(getApplicationContext()).sendMessage(
+                                node.getId(), "/connection", "DISCONNECTED".getBytes());
+                }
                 smartWatchConnected=false;
+
             }
 
             String motion_frequency_thingy = pref.getString("motion_frequency_thingy", "200");
@@ -629,6 +704,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
         @Override
         public void onDeviceConnected(BluetoothDevice device, int connectionState) {
+            if(waitForDeviceConnectedDisconnected)
+                waitForDeviceConnectedDisconnected=false;
             Log.d(TAG, "onDeviceConnected: "+device.getAddress()+" connectionSstate: "+connectionState);
 
             devicesSelectedAdapters.notifyDataSetChanged();
@@ -644,6 +721,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
         @Override
         public void onDeviceDisconnected(BluetoothDevice device, int connectionState) {
+            if(waitForDeviceConnectedDisconnected)
+                waitForDeviceConnectedDisconnected=false;
             Log.d(TAG, "onDeviceDisconnected: "+device.getAddress()+" connectionState: "+connectionState);
             Toast.makeText(getApplicationContext(), "Thingy "+device.getAddress() +" disconnected ", Toast.LENGTH_SHORT).show();
 
@@ -815,7 +894,34 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                         if(waitingDialogFragment!=null){
                             waitingDialogFragment.dismiss();
                         }
-                        showSessionOngoingDialogFragment();
+                        if(!activityStopped)
+                            showSessionOngoingDialogFragment();
+                        break;
+                    case "connectedThreadClosed":
+                        Thread r= new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    sleep(1000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                mBluetoothConnectionService.closeConnectedThread();
+                            }
+                        };
+                        r.start();
+                        if(isCollectingData)
+                            stopDataCollection();
+                        if(sessionOngoingDialogFragment!=null){
+                            if(activityStopped)
+                                closeConnectionAndDialogOnResume=true;
+                            else{
+                                sessionOngoingDialogFragment.dismiss();
+                            }
+                        }
+//                        Toast.makeText(getApplicationContext(),"ConnectionError",Toast.LENGTH_SHORT).show();
+                        if(readySwitch.isChecked())
+                            readySwitch.setChecked(false);
                         break;
                     case "1":
                         patient_id=split[2];
@@ -824,11 +930,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                         phone_sound= split[5].equals("1");
                         phone_vibration= split[6].equals("1");
                         watch_vibration= split[7].equals("1");
-                        wagoo_lights= split[6].equals("1");
-//                        phone_sound=true;
-//                        phone_vibration=true;
-//                        watch_vibration=true;
-//                        wagoo_lights=true;
+                        wagoo_lights= split[8].equals("1");
                         break;
                     case "2":
                         Log.d(TAG, "onReceive: startDataCollection");
@@ -847,18 +949,36 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                         stopDataCollection();
                         break;
                     case "6":
-                        if(sessionOngoingDialogFragment!=null){
-                            sessionOngoingDialogFragment.dismiss();
-                            mBluetoothConnectionService.closeConnectedThread();
+                        if(!activityStopped){
+                            if(sessionOngoingDialogFragment!=null){
+                                sessionOngoingDialogFragment.dismiss();
+                                sessionOngoingDialogFragment=null;
+                                Thread thread= new Thread() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            sleep(1000);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                        mBluetoothConnectionService.closeConnectedThread();
+                                    }
+                                };
+                                thread.start();
+                            }
+                            if(readySwitch.isChecked())
+                                readySwitch.setChecked(false);
                         }
-                        if(readySwitch.isChecked())
-                            readySwitch.setChecked(false);
+                        else
+                             closeConnectionAndDialogOnResume=true;
                         break;
+                    default:
                 }
             }
             else{
                 switch (message){
                     case "wagooglassesconnected":
+                        Toast.makeText(getApplicationContext(),"Wagoo Glasses Connected",Toast.LENGTH_SHORT).show();
                         devicesSelectedAdapters.notifyDataSetChanged();
                         break;
                     case "wagooglassesdisconnected":
@@ -866,17 +986,13 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                             if(device.getType().equals(DevicesEnum.WAGOOGLASSES)){
                                 selectedDeviceList.remove(device);
                                 devicesSelectedAdapters.notifyDataSetChanged();
+                                Toast.makeText(getApplicationContext(),"Wagoo Glasses Connected",Toast.LENGTH_SHORT).show();
                                 return;
                             }
                         }
                         break;
                     case "smartwatchconnected":
-                        Toast.makeText(getApplicationContext(),"Smart Watch Paired",Toast.LENGTH_SHORT).show();
-                        smartWatchConnected=true;
-                        break;
-                    default:
-                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "onReceive: " + message);
+                        Toast.makeText(getApplicationContext(),"Smart Watch Connected",Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -890,24 +1006,30 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
      */
     @Override
     public void onScannedDeviceClick(String address) {
-        for (GeneralDevice device : scanDevicesList){
-            if (device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.NORDIC))){
-                Log.d(TAG, "onScannedDeviceClick: "+address);
-                scanDevicesList.remove(device);
-                selectedDeviceList.add(device);
-                devicesScanAdapters.notifyDataSetChanged();
-                thingySdkManager.connectToThingy(this, device.getBluetoothDevice(), ThingyService.class);
-                break;
-            }
-            else if(device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.WAGOOGLASSES))){
-                Log.d(TAG, "onScannedDeviceClick: "+address);
-                scanDevicesList.remove(device);
-                selectedDeviceList.add(device);
-                wagooGlassesInterface.connect();
-                devicesScanAdapters.notifyDataSetChanged();
-                break;
+        if(waitForDeviceConnectedDisconnected)
+            return;
+        else{
+            waitForDeviceConnectedDisconnected=true;
+            for (GeneralDevice device : scanDevicesList){
+                if (device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.NORDIC))){
+                    Log.d(TAG, "onScannedDeviceClick: "+address);
+                    scanDevicesList.remove(device);
+                    selectedDeviceList.add(device);
+                    devicesScanAdapters.notifyDataSetChanged();
+                    thingySdkManager.connectToThingy(this, device.getBluetoothDevice(), ThingyService.class);
+                    break;
+                }
+                else if(device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.WAGOOGLASSES))){
+                    Log.d(TAG, "onScannedDeviceClick: "+address);
+                    scanDevicesList.remove(device);
+                    selectedDeviceList.add(device);
+                    wagooGlassesInterface.connect();
+                    devicesScanAdapters.notifyDataSetChanged();
+                    break;
+                }
             }
         }
+
     }
 
     /**
@@ -973,8 +1095,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             Log.d(TAG, "startDataCollection: wagooGlasses Connected: "+wagooGlassesInterface.isConnected());
 
             Intent beaconDiscoveryService = new Intent(this, DataCollectionService.class);
-//            String id=timestamp+" session:"+session_id_integer;
-            String id=patient_id+session_id;
+            String id=timestamp+" session:"+session_id_integer;
+//            String id=patient_id+session_id;
             Log.d(TAG, "startDataCollection: "+id);
 
             beaconDiscoveryService.putExtra("SESSION_ID",id);
@@ -1010,15 +1132,14 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             if(smartWatchConnected && watch_vibration){
                 if (nodes != null) {
                     for (Node node : nodes)
-                        Wearable.getMessageClient(getApplicationContext()).sendMessage(
-                                node.getId(), "/vibration", String.valueOf(bpm).getBytes());
+                        Wearable.getMessageClient(getApplicationContext()).sendMessage(node.getId(), "/vibration", String.valueOf(bpm).getBytes());
                 }
             }
             if(wagooGlassesInterface.isConnected() && wagoo_lights){
                 int interval= (int) (60000/(bpm*2));
                 wagooGlassesInterface.set_lights(1.0f,interval,true,true,true);
             }
-            if(phone_sound || phone_vibration){
+            if(phone_sound || phone_vibration || watch_vibration || wagoo_lights){
                 mSoundVibrationThread = new SoundVibrationThread(getApplicationContext(), phone_vibration, phone_sound, bpm);
                 mSoundVibrationThread.start();
             }
@@ -1028,7 +1149,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     private void stopDeviceOutput(){
         if(soundVibrationLightsOn){
             soundVibrationLightsOn =false;
-            mSoundVibrationThread.end();
+            if(mSoundVibrationThread!=null)
+                mSoundVibrationThread.end();
             if(wagooGlassesInterface.isConnected()){
                 wagooGlassesInterface.set_lights(0.0f, 0,false,false,false);
             }
@@ -1047,9 +1169,16 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
     }
 
     public void showSessionOngoingDialogFragment(){
-        sessionOngoingDialogFragment = new SessionOngoingDialogFragment();
+        sessionOngoingDialogFragment = new SessionOngoingDialogFragment(this);
         sessionOngoingDialogFragment.setCancelable(false);
-        sessionOngoingDialogFragment.show(getSupportFragmentManager(), "WaitForDoctor");
+        sessionOngoingDialogFragment.show(getSupportFragmentManager(), "Session Ongoing");
+    }
+
+    public void showReplicationOngoingDialogFragment(){
+        replicationOngoingDialogFragment = new ReplicationOngoingDialogFragment(this);
+        replicationOngoingDialogFragment.setCancelable(false);
+        replicationOngoingDialogFragment.show(getSupportFragmentManager(), "Replication Ongoing");
+
     }
 
     public void connectToWearable() {
@@ -1068,9 +1197,18 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                         Intent messageToActivityIntent=new Intent("incomingMessage");
                         messageToActivityIntent.putExtra("theMessage","smartwatchconnected");
                         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageToActivityIntent);
-                        for (Node node : nodes)
+                        nodeIds=new ArrayList();
+                        for (Node node : nodes){
                             Wearable.getMessageClient(getApplicationContext()).sendMessage(
-                                    node.getId(), "/ping", "PING".getBytes());
+                                    node.getId(), "/connection", "CONNECTED".getBytes());
+                            nodeIds.add(node.getId());
+                        }
+                        smartWatchConnected=true;
+
+                        Intent incomingMessageIntent=new Intent("closingMessage");
+                        incomingMessageIntent.putExtra("wearState",smartWatchConnected);
+                        incomingMessageIntent.putStringArrayListExtra("nodesId",nodeIds);
+                        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(incomingMessageIntent);
                     }
                 } else {
                     Log.d(TAG, "Capability request failed to return any results.");
@@ -1119,4 +1257,5 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
         }
         devicesSelectedAdapters.notifyDataSetChanged();
     }
+
 }
