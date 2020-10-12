@@ -446,7 +446,8 @@ class WagooGlassesInterface internal constructor(
     private fun getNextWid(): Int? {
         val wid = widQueue.getOrNull(0) ?: return null
         widQueue.removeAt(0)
-        return wid
+        // FIXME: Workaround for memory overflow on nordic with the new algorithm!
+        return wid % 8
     }
 
     fun whitelist_add_mac(mac: ByteArray): Int? {

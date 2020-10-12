@@ -61,5 +61,5 @@ internal abstract class KotlinSenderCoreFunctions : MainRustInterop.Sender() {
     external fun request_mtu(value: Int)
     external fun disable_logging()
     external fun enable_logging()
-    external fun start_chip_update(chips: ByteArray, path: String)
+    external fun start_chip_update(firmw_code: Int, path: String)
 }
