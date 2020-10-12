@@ -986,7 +986,7 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                             if(device.getType().equals(DevicesEnum.WAGOOGLASSES)){
                                 selectedDeviceList.remove(device);
                                 devicesSelectedAdapters.notifyDataSetChanged();
-                                Toast.makeText(getApplicationContext(),"Wagoo Glasses Connected",Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(),"Wagoo Glasses Disconnected",Toast.LENGTH_SHORT).show();
                                 return;
                             }
                         }
@@ -1055,7 +1055,9 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
 
     @Override
     public void onSelectedDeviceLongClick(String address) {
-            for (GeneralDevice device : selectedDeviceList){
+
+            for (int i = 0; i < selectedDeviceList.size();) {
+                GeneralDevice device = selectedDeviceList.get(i);
                 if (device.getAddress().equals(address) && (device.getType().equals(DevicesEnum.NORDIC))){
                     thingySdkManager.disconnectFromThingy(device.getBluetoothDevice());
                 }
@@ -1064,7 +1066,9 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
                     selectedDeviceList.remove(device);
                     wagooGlassesInterface.disconnect();
                     devicesSelectedAdapters.notifyDataSetChanged();
+                    continue;
                 }
+                i++;
             }
     }
 

@@ -191,7 +191,7 @@ internal class WagooBleManager(val context: Context,
                         bleConnection.close(false)
 
                         if (isActive) {
-                            connect(true)
+//                            connect(true)
                             this.cancel()
                         }
                         status = BLEStatus.DISCONNECTED
