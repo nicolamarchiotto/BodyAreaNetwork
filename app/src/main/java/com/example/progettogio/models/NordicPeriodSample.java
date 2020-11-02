@@ -17,6 +17,7 @@ public class NordicPeriodSample {
     private int subsession;
     private String nordicName;
     private SubSectionCallback callback;
+    private int nordicNumber;
 
     //    private MutableDictionary[] myArray=new MutableDictionary[500];
     private MutableDictionary[] quaternionArray;
@@ -45,12 +46,13 @@ public class NordicPeriodSample {
     private Boolean creatingSupportArray=false;
 
 
-    public NordicPeriodSample(String thingyName, String deviceAddress, SubSectionCallback subsessionCallback,int arrayDimension) {
+    public NordicPeriodSample(String thingyName, String deviceAddress, int nordicNumber, SubSectionCallback subsessionCallback,int arrayDimension) {
         nordicAddress = deviceAddress;
         subsession = 0;
         nordicName = thingyName;
         callback = subsessionCallback;
         ARRAYDIMENSION=arrayDimension;
+        this.nordicNumber=nordicNumber;
 
         quaternionArray = new MutableDictionary[ARRAYDIMENSION];
         accelerometerArray = new MutableDictionary[ARRAYDIMENSION];
@@ -284,6 +286,8 @@ public class NordicPeriodSample {
         return nordicAddress;
     }
 
+    public int getNordicNumber() { return nordicNumber; }
+
     public void setNordicAddress(String nordicAddress) {
         this.nordicAddress = nordicAddress;
     }
@@ -291,4 +295,6 @@ public class NordicPeriodSample {
     public int getSubsection() {
         return subsession;
     }
+
+
 }

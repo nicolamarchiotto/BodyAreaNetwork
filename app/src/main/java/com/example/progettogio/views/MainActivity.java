@@ -1099,8 +1099,8 @@ public class MainActivity extends AppCompatActivity implements ThingySdkManager.
             Log.d(TAG, "startDataCollection: wagooGlasses Connected: "+wagooGlassesInterface.isConnected());
 
             Intent beaconDiscoveryService = new Intent(this, DataCollectionService.class);
-            String id=timestamp+" session:"+session_id_integer;
-//            String id=patient_id+session_id;
+//            String id=timestamp+" session:"+session_id_integer;
+            String id=patient_id + " " + session_id;
             Log.d(TAG, "startDataCollection: "+id);
 
             beaconDiscoveryService.putExtra("SESSION_ID",id);

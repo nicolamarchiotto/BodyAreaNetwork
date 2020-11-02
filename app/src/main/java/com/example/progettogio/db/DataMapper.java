@@ -161,9 +161,17 @@ public class DataMapper {
     }
 
     public void saveNordicPeriodSampleIntoLocalDb(NordicPeriodSample nordicPeriodSample, String session_id, int subsection){
-        String document_id=session_id+"."+subsection+" - "+ nordicPeriodSample.getNordicName();
+        //String document_id=session_id+"."+subsection+" - "+ nordicPeriodSample.getNordicName();
+        //format: patient_id, session_id, type and number of device, subsection, device address
+        String document_id="";
+        if(subsection<10)
+            document_id=session_id+"-N-"+nordicPeriodSample.getNordicNumber()+"-0"+subsection+"-"+nordicPeriodSample.getNordicAddress();
+        else
+            document_id=session_id+"-N-"+nordicPeriodSample.getNordicNumber()+"-"+subsection+"-"+nordicPeriodSample.getNordicAddress();
+
         Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument newDoc = new MutableDocument(document_id);
+        newDoc .setString("id",document_id);
         newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample.getNordicAddress()));
         newDoc.setArray("tQuaternion", new MutableArray(Arrays.asList(nordicPeriodSample.getQuaternionSupportArray())))
                 .setArray("tAccellerometer", new MutableArray(Arrays.asList(nordicPeriodSample.getAccelerometerSupportArray())))
@@ -199,9 +207,16 @@ public class DataMapper {
 
 
     public void saveNordicLastPeriodSampleIntoLocalDb(NordicPeriodSample nordicPeriodSample, String session_id){
-        String document_id=session_id+"."+ nordicPeriodSample.getSubsection()+" - "+ nordicPeriodSample.getNordicName();
+//        String document_id=session_id+"."+ nordicPeriodSample.getSubsection()+" - "+ nordicPeriodSample.getNordicName();
+        String document_id="";
+        if(nordicPeriodSample.getSubsection()<10)
+            document_id=session_id+"-N-"+nordicPeriodSample.getNordicNumber()+"-0"+nordicPeriodSample.getSubsection()+"-"+nordicPeriodSample.getNordicAddress();
+        else
+            document_id=session_id+"-N-"+nordicPeriodSample.getNordicNumber()+"-"+nordicPeriodSample.getSubsection()+"-"+nordicPeriodSample.getNordicAddress();
+
         Log.d(TAG, "saveNordicPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument newDoc = new MutableDocument(document_id);
+        newDoc.setString("id",document_id);
         newDoc.setArray("DeviceAddress", new MutableArray().addString(nordicPeriodSample.getNordicAddress()));
         newDoc.setArray("tQuaternion", new MutableArray(Arrays.asList(nordicPeriodSample.getQuaternionArray())))
                 .setArray("tAccellerometer", new MutableArray(Arrays.asList(nordicPeriodSample.getAccelerometerArray())))
@@ -237,10 +252,14 @@ public class DataMapper {
     }
 
     public void saveWagooPeriodSampleIntoDbLocal(WagooPeriodSample wagooPeriodSample,String session_id, int subSession){
-
-        String document_id=session_id+"."+subSession+" - WGlasses";
+        String document_id="";
+        if(subSession<10)
+            document_id=session_id+"-W-0"+subSession;
+        else
+            document_id=session_id+"-W-"+subSession;
         Log.d(TAG, "saveWagooPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument doc = new MutableDocument(document_id);
+        doc.setString("id",document_id);
         doc.setArray("Name", new MutableArray().addString("WagooSmartGlasses"));
         doc.setArray("wAccelGyroData",new MutableArray(Arrays.asList(wagooPeriodSample.getWagooDataSupportMutableArray())));
 
@@ -268,9 +287,15 @@ public class DataMapper {
     }
 
     public void saveWagooLastPeriodSampleIntoDbLocal(WagooPeriodSample wagooPeriodSample,String session_id){
-        String document_id=session_id+"."+wagooPeriodSample.getSubsession()+" - WGlasses";
+        String document_id="";
+        if(wagooPeriodSample.getSubsession()<10)
+            document_id=session_id+"-W-0"+wagooPeriodSample.getSubsession();
+        else
+            document_id=session_id+"-W-"+wagooPeriodSample.getSubsession();
+
         Log.d(TAG, "saveWagooPeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument doc = new MutableDocument(document_id);
+        doc.setString("id",document_id);
         doc.setArray("Name", new MutableArray().addString("WagooSmartGlasses"));
         doc.setArray("wAccelGyroData",new MutableArray(Arrays.asList(wagooPeriodSample.getWagooDataMutableArray())));
 
@@ -300,9 +325,15 @@ public class DataMapper {
     }
 
     public void savePhonePeriodSampleIntoDbLocal(PhonePeriodSample phonePeriodSample,String session_id, int subSession){
-        String document_id=session_id+"."+subSession+" - P";
+        String document_id="";
+        if(subSession<10)
+            document_id=session_id+"-P-0"+subSession;
+        else
+            document_id=session_id+"-P-"+subSession;
+
         Log.d(TAG, "savePhonePeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument doc = new MutableDocument(document_id);
+        doc.setString("id",document_id);
         doc.setArray("Name", new MutableArray().addString("Phone"));
         doc.setArray("pLinearAccelerometer", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneLinearAccelerometerSupportMutableArray())))
                 .setArray("pAccellerometer", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneAccelerometerSupportMutableArray())))
@@ -335,9 +366,15 @@ public class DataMapper {
     }
 
     public void savePhoneLastPeriodSampleIntoDbLocal(PhonePeriodSample phonePeriodSample,String session_id){
-        String document_id=session_id+"."+phonePeriodSample.getSubSessionCounter()+" - P";
+        String document_id="";
+        if(phonePeriodSample.getSubSession()<10)
+            document_id=session_id+"-P-0"+phonePeriodSample.getSubSession();
+        else
+            document_id=session_id+"-P-"+phonePeriodSample.getSubSession();
+
         Log.d(TAG, "savePhonePeriodSampleIntoDbLocal: saving "+document_id+" into local db");
         MutableDocument doc = new MutableDocument(document_id);
+        doc.setString("id",document_id);
         doc.setArray("Name", new MutableArray().addString("Phone"));
         doc.setArray("pLinearAccelerometer", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneLinearAccelerometerMutableArray())))
                 .setArray("pAccellerometer", new MutableArray(Arrays.asList(phonePeriodSample.getPhoneAccelerometerMutableArray())))

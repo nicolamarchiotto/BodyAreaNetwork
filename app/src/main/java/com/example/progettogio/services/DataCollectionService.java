@@ -91,7 +91,7 @@ public class DataCollectionService extends Service implements ThingySdkManager.S
         for(BluetoothDevice device : thingySdkManager.getConnectedDevices()) {
             Log.d(TAG, "startCollection: connettendo il device "+device.getAddress()+" al listener in DataCollectorService");
             ThingyListenerHelper.registerThingyListener(getApplicationContext(),thingyListener,device);
-            nordicHashMap.put(device.getAddress(),new NordicPeriodSample("N"+nordicNumber+"-"+device.getName(),device.getAddress(), this,ARRAYDIMENSION));
+            nordicHashMap.put(device.getAddress(),new NordicPeriodSample("N"+nordicNumber+"-"+device.getName(),device.getAddress(), nordicNumber,this,ARRAYDIMENSION));
             nordicNumber+=1;
             thingySdkManager.enableMotionNotifications(device,true);
             Log.d(TAG, "onCreate: "+device.getAddress()+" - wake state "+thingySdkManager.getWakeOnMotionState(device));

@@ -40,7 +40,7 @@ public class PhonePeriodSample implements SensorEventListener {
 
     private Boolean creatingSupportArray=false;
 
-    private int subSessionCounter=0;
+    private int subSession =0;
     private SubSectionCallback callback;
 
 
@@ -155,8 +155,8 @@ public class PhonePeriodSample implements SensorEventListener {
             phoneMagnetoMutableArray=new MutableDictionary[ARRAYDIMENSION];
             magnetoIndex=0;
 
-            callback.doPhoneSubsection(subSessionCounter);
-            subSessionCounter+=1;
+            callback.doPhoneSubsection(subSession);
+            subSession +=1;
 
             creatingSupportArray=false;
         }
@@ -194,12 +194,12 @@ public class PhonePeriodSample implements SensorEventListener {
         return phoneMagnetoSupportMutableArray;
     }
 
-    public int getSubSessionCounter() {
-        return subSessionCounter;
+    public int getSubSession() {
+        return subSession   ;
     }
 
     private void nextSubsession(){
-        subSessionCounter+=1;
+        subSession +=1;
     }
 
 
