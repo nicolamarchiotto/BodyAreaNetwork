@@ -1,4 +1,11 @@
 # BodyAreaNetwork
+
+Bachelor Degree in IT - University of Verona - A.Y. 19/20
+
+Bachelor thesis project
+
+## Description
+
 An Android application responsible for collecting data from Nordic:52 devices and Wagoo Smart Glasses, to connect to an another smartphone, 
 with an Andorid Wearable and to exchange messages with all these devices
 
